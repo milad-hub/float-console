@@ -25,8 +25,8 @@ A floating console Chrome extension that captures logs, warnings, and errors for
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/milad-hub/floatconsole.git
-cd floatconsole
+git clone https://github.com/milad-hub/float-console.git
+cd float-console
 ```
 
 2. Install dependencies:
@@ -79,7 +79,7 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ## 📧 Support
 
-Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/milad-hub/floatconsole/issues).
+Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/milad-hub/float-console/issues).
 
 ---
 
