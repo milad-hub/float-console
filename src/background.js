@@ -1,24 +1,24 @@
-// FloatConsole Background Script
-// Service worker for handling keyboard shortcuts and extension lifecycle
-
 import { sendMessageToActiveTab } from './utils/sendMessageToActiveTab.js';
 
-// Listen for keyboard commands
-chrome.commands.onCommand.addListener((command) => {
+chrome.commands.onCommand.addListener(async (command) => {
   if (command === 'toggle_dock') {
-    // Toggle the FloatConsole dock
-    sendMessageToActiveTab({ action: 'toggleDock' });
+    try {
+      await sendMessageToActiveTab({ action: 'toggleDock' });
+    } catch (error) {
+      console.warn('Failed to toggle dock:', error);
+    }
   }
 });
 
-// Handle extension installation
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    console.log('FloatConsole extension installed');
-    // Initialize default settings
-    chrome.storage.sync.set({
-      dockVisible: false,
-      dockPosition: 'bottom-right'
-    });
+    try {
+      await chrome.storage.sync.set({
+        dockVisible: false,
+        dockPosition: 'bottom-right'
+      });
+    } catch (error) {
+      console.error('Failed to initialize default settings:', error);
+    }
   }
 });
