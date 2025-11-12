@@ -1,0 +1,24 @@
+{
+  "name": "floatconsole-extension",
+  "version": "1.0.0",
+  "description": "A floating console that captures logs, warnings, and errors for quick debugging",
+  "scripts": {
+    "build": "webpack --mode=production",
+    "build:dev": "webpack --mode=development --watch",
+    "clean": "rm -rf dist",
+    "zip": "node scripts/zip-extension.js"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^13.0.1",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1"
+  },
+  "keywords": [
+    "chrome-extension",
+    "debugging",
+    "console",
+    "developer-tools"
+  ],
+  "author": "FloatConsole Team",
+  "license": "MIT"
+}

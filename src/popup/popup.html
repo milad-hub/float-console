@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FloatConsole Settings</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <h1>FloatConsole</h1>
+      <p>Configure your floating console</p>
+    </header>
+
+    <div class="popup-content">
+      <section class="setting-group">
+        <h2>Position</h2>
+        <div class="position-grid">
+          <button class="position-btn" data-position="top-left">
+            <span class="position-icon">↖</span>
+            <span class="position-label">Top Left</span>
+          </button>
+          <button class="position-btn" data-position="top-right">
+            <span class="position-icon">↗</span>
+            <span class="position-label">Top Right</span>
+          </button>
+          <button class="position-btn" data-position="bottom-left">
+            <span class="position-icon">↙</span>
+            <span class="position-label">Bottom Left</span>
+          </button>
+          <button class="position-btn" data-position="bottom-right">
+            <span class="position-icon">↘</span>
+            <span class="position-label">Bottom Right</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="setting-group">
+        <label class="toggle-label">
+          <input type="checkbox" id="dock-toggle">
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">Enable FloatConsole</span>
+        </label>
+      </section>
+
+      <section class="setting-group">
+        <h3>Keyboard Shortcut</h3>
+        <div class="shortcut-info">
+          <kbd>Ctrl+Shift+X</kbd>
+          <span class="shortcut-desc">Toggle console visibility</span>
+        </div>
+      </section>
+    </div>
+
+    <footer class="popup-footer">
+      <p>v1.0.0</p>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
