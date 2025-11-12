@@ -764,8 +764,8 @@ class DockManager {
     this.button = document.createElement('button');
     this.button.id = 'fc-dock-button';
     this.button.className = `fc-dock-button ${this.position}`;
-    this.button.title = 'FloatConsole';
-    this.button.setAttribute('aria-label', 'Toggle FloatConsole');
+    this.button.title = 'Float Console';
+    this.button.setAttribute('aria-label', 'Toggle Float Console');
 
     const icon = document.createElement('div');
     icon.className = 'fc-button-icon';

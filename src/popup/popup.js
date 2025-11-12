@@ -1,4 +1,4 @@
-// FloatConsole Popup Script
+// Float Console Popup Script
 // Handles popup UI interactions and communicates with background/content scripts
 
 document.addEventListener('DOMContentLoaded', async () => {

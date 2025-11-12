@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "FloatConsole",
+  "name": "Float Console",
   "version": "1.0.0",
   "description": "A floating console that captures logs, warnings, and errors for quick debugging",
   "action": {
     "default_icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzY2N0VFQSIvPgo8cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iMjQiIGhlaWdodD0iMjAiIHJ4PSIyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjEwIiB5PSIxOSIgZm9udC1zaXplPSI4IiBmaWxsPSIjMDAwIj5DJjwvdGV4dD4KPHRleHQgeD0iMTgiIHk9IjI1IiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIj7ilrDilrDilrA8L3RleHQ+Cjwvc3ZnPgo=",
     "default_popup": "popup/popup.html",
-    "default_title": "Configure FloatConsole"
+    "default_title": "Configure Float Console"
   },
   "background": {
     "service_worker": "background.js",
@@ -14,7 +14,7 @@
   },
   "commands": {
     "toggle_dock": {
-      "description": "Toggle the FloatConsole on/off",
+      "description": "Toggle the Float Console on/off",
       "suggested_key": {
         "default": "Ctrl+Shift+X",
         "mac": "Command+Shift+X"

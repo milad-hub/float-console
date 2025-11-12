@@ -72,7 +72,7 @@
         }
       }, '*');
     } catch (e) {
-      originalConsole.error('FloatConsole: Failed to post log message', e);
+      originalConsole.error('Float Console: Failed to post log message', e);
     }
   }
 

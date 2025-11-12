@@ -1,8 +1,8 @@
-# FloatConsole
+# Float Console
 
 A floating console Chrome extension that captures logs, warnings, and errors for quick debugging without opening DevTools.
 
-![FloatConsole](https://img.shields.io/badge/version-1.0.0-blue)
+![Float Console](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-under%20development-yellow)
 ![Release](https://img.shields.io/badge/release-not%20released-red)
