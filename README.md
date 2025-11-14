@@ -21,7 +21,7 @@ A floating console Chrome extension that captures logs, warnings, and errors for
 - **Expandable Messages** - Expand/collapse long log messages with chevron controls
 - **Lightweight & Performant** - Optimized with debouncing, memory management, and efficient rendering
 - **Modern UI** - Clean design with dark/light theme support
-- **Keyboard Shortcuts** - Quick toggle with `Ctrl+Shift+X` (or `Cmd+Shift+X` on Mac)
+- **Keyboard Shortcuts** - Customizable keyboard shortcut to toggle the console (can be configured in Chrome's extension shortcuts settings)
 - **Customizable Settings**:
   - Position control (top-left, top-right, bottom-left, bottom-right)
   - Hover-to-show mode
@@ -64,7 +64,7 @@ npm run build
 
 ### Basic Operations
 
-1. **Toggle Console**: Click the floating button or press `Ctrl+Shift+X`
+1. **Toggle Console**: Click the floating button or use your configured keyboard shortcut. You can set or change the shortcut in Chrome's extension shortcuts settings (`chrome://extensions/shortcuts`)
 2. **Reposition**: Use the position buttons in settings or drag the floating button to any corner
 3. **Resize**: Drag the resize handles on the console panel edges
 4. **Clear Logs**: Click the "Clear" button in the console header
