@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Float Console - Test Page</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1em;
+    }
+
+    .section {
+      margin-bottom: 40px;
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+    }
+
+    .section h2 {
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .section p {
+      color: #666;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .btn-warn {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+
+    .btn-error {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .btn-debug {
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      color: white;
+    }
+
+    .btn-table {
+      background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+      color: white;
+    }
+
+    .btn-group {
+      background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+      color: white;
+    }
+
+    .btn-object {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+    }
+
+    .btn-error-throw {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+    }
+
+    .btn-promise {
+      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      color: white;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .warning-box {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      color: #92400e;
+    }
+
+    code {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Float Console Test Page</h1>
+    <p class="subtitle">Test all types of console logs and errors</p>
+
+    <div class="section">
+      <h2>📝 Basic Console Logs</h2>
+      <p>Test basic console logging methods</p>
+      <div class="button-group">
+        <button class="btn-info" onclick="testConsoleLog()">console.log()</button>
+        <button class="btn-info" onclick="testConsoleInfo()">console.info()</button>
+        <button class="btn-success" onclick="testConsoleSuccess()">console.log (success)</button>
+        <button class="btn-debug" onclick="testConsoleDebug()">console.debug()</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>⚠️ Warnings</h2>
+      <p>Test console warning messages</p>
+      <div class="button-group">
+        <button class="btn-warn" onclick="testConsoleWarn()">console.warn()</button>
+        <button class="btn-warn" onclick="testConsoleWarnMultiple()">Multiple Warnings</button>
+        <button class="btn-warn" onclick="testConsoleWarnObject()">Warning with Object</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>❌ Errors</h2>
+      <p>Test console error messages and exceptions</p>
+      <div class="button-group">
+        <button class="btn-error" onclick="testConsoleError()">console.error()</button>
+        <button class="btn-error" onclick="testConsoleErrorStack()">Error with Stack</button>
+        <button class="btn-error-throw" onclick="testThrowError()">Throw Error</button>
+        <button class="btn-error-throw" onclick="testUnhandledRejection()">Unhandled Promise</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📊 Tables & Groups</h2>
+      <p>Test console table and group methods</p>
+      <div class="button-group">
+        <button class="btn-table" onclick="testConsoleTable()">console.table()</button>
+        <button class="btn-group" onclick="testConsoleGroup()">console.group()</button>
+        <button class="btn-group" onclick="testConsoleGroupCollapsed()">console.groupCollapsed()</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔍 Objects & Data</h2>
+      <p>Test console logging with complex objects and data structures</p>
+      <div class="button-group">
+        <button class="btn-object" onclick="testConsoleObject()">Simple Object</button>
+        <button class="btn-object" onclick="testConsoleNestedObject()">Nested Object</button>
+        <button class="btn-object" onclick="testConsoleArray()">Array</button>
+        <button class="btn-object" onclick="testConsoleCircular()">Circular Reference</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🎯 Advanced Scenarios</h2>
+      <p>Test edge cases and advanced logging scenarios</p>
+      <div class="button-group">
+        <button class="btn-promise" onclick="testPromiseRejection()">Promise Rejection</button>
+        <button class="btn-error" onclick="testResourceError()">Resource Error</button>
+        <button class="btn-debug" onclick="testMultipleLogs()">Multiple Logs</button>
+        <button class="btn-info" onclick="testLongMessage()">Long Message</button>
+      </div>
+    </div>
+
+    <div class="warning-box">
+      <strong>⚠️ Note:</strong> Some errors (like thrown errors and unhandled promise rejections) will appear in both the browser console and the Float Console.
+    </div>
+  </div>
+
+  <script>
+    function testConsoleLog() {
+      console.log('This is a simple log message');
+      console.log('Log with multiple', 'arguments', 123, true);
+      console.log('Log with emoji: 🚀');
+    }
+
+    function testConsoleInfo() {
+      console.info('Information message');
+      console.info('User logged in:', { userId: 12345, username: 'testuser' });
+    }
+
+    function testConsoleSuccess() {
+      console.log('%c✅ Success!', 'color: green; font-weight: bold; font-size: 16px;');
+      console.log('Operation completed successfully');
+    }
+
+    function testConsoleDebug() {
+      console.debug('Debug message');
+      console.debug('Debug info:', { step: 1, action: 'processing', data: [1, 2, 3] });
+    }
+
+    function testConsoleWarn() {
+      console.warn('Warning: This is a warning message');
+      console.warn('Deprecated function used');
+    }
+
+    function testConsoleWarnMultiple() {
+      console.warn('Warning 1: Low memory');
+      console.warn('Warning 2: Slow network');
+      console.warn('Warning 3: Cache expired');
+    }
+
+    function testConsoleWarnObject() {
+      console.warn('Warning with object:', {
+        code: 'WARN_001',
+        message: 'Resource limit approaching',
+        threshold: 80,
+        current: 75
+      });
+    }
+
+    function testConsoleError() {
+      console.error('Error: Something went wrong');
+      console.error('Failed to load resource:', 'https://example.com/api/data');
+    }
+
+    function testConsoleErrorStack() {
+      try {
+        throw new Error('This is a test error with stack trace');
+      } catch (error) {
+        console.error('Caught error:', error);
+      }
+    }
+
+    function testThrowError() {
+      throw new Error('Uncaught error thrown!');
+    }
+
+    function testUnhandledRejection() {
+      Promise.reject(new Error('Unhandled promise rejection'));
+    }
+
+    function testConsoleTable() {
+      const users = [
+        { id: 1, name: 'Alice', age: 30, role: 'Admin' },
+        { id: 2, name: 'Bob', age: 25, role: 'User' },
+        { id: 3, name: 'Charlie', age: 35, role: 'Moderator' }
+      ];
+      console.table(users);
+      
+      const data = {
+        'Column 1': ['A', 'B', 'C'],
+        'Column 2': [1, 2, 3],
+        'Column 3': [true, false, true]
+      };
+      console.table(data);
+    }
+
+    function testConsoleGroup() {
+      console.group('User Actions');
+      console.log('Action 1: Login');
+      console.log('Action 2: Load Dashboard');
+      console.log('Action 3: Fetch Data');
+      console.groupEnd();
+    }
+
+    function testConsoleGroupCollapsed() {
+      console.groupCollapsed('API Calls');
+      console.log('GET /api/users');
+      console.log('GET /api/posts');
+      console.log('POST /api/comments');
+      console.groupEnd();
+    }
+
+    function testConsoleObject() {
+      const user = {
+        id: 1,
+        name: 'John Doe',
+        email: 'john@example.com',
+        active: true,
+        permissions: ['read', 'write']
+      };
+      console.log('User object:', user);
+    }
+
+    function testConsoleNestedObject() {
+      const complex = {
+        level1: {
+          level2: {
+            level3: {
+              level4: {
+                data: 'Deep nested data',
+                numbers: [1, 2, 3, 4, 5],
+                nested: {
+                  final: 'This is very deep!'
+                }
+              }
+            }
+          }
+        },
+        array: [
+          { item: 1, value: 'first' },
+          { item: 2, value: 'second' },
+          { item: 3, value: 'third' }
+        ]
+      };
+      console.log('Nested object:', complex);
+    }
+
+    function testConsoleArray() {
+      const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+      console.log('Number array:', numbers);
+      
+      const mixed = ['string', 123, true, null, undefined, { obj: 'value' }];
+      console.log('Mixed array:', mixed);
+    }
+
+    function testConsoleCircular() {
+      const obj = { name: 'Circular Test' };
+      obj.self = obj;
+      obj.nested = { parent: obj };
+      console.log('Circular reference:', obj);
+    }
+
+    function testPromiseRejection() {
+      new Promise((resolve, reject) => {
+        setTimeout(() => {
+          reject(new Error('Promise rejected after timeout'));
+        }, 100);
+      }).catch(error => {
+        console.error('Promise rejection caught:', error);
+      });
+    }
+
+    function testResourceError() {
+      const img = new Image();
+      img.onerror = function() {
+        console.error('Failed to load image:', img.src);
+      };
+      img.onload = function() {
+        console.log('Image loaded successfully');
+      };
+      img.src = 'https://invalid-url-that-does-not-exist.com/image.png';
+    }
+
+    function testMultipleLogs() {
+      for (let i = 0; i < 10; i++) {
+        console.log(`Log message ${i + 1}`);
+      }
+      console.warn('Warning in between');
+      console.error('Error in between');
+      for (let i = 10; i < 20; i++) {
+        console.log(`Log message ${i + 1}`);
+      }
+    }
+
+    function testLongMessage() {
+      const longMessage = 'This is a very long message that contains a lot of text. '.repeat(20);
+      console.log('Long message:', longMessage);
+      
+      const longObject = {
+        message: 'A'.repeat(500),
+        description: 'B'.repeat(1000),
+        data: Array(100).fill(0).map((_, i) => `Item ${i}`)
+      };
+      console.log('Long object:', longObject);
+    }
+
+    window.addEventListener('error', (event) => {
+      console.error('Global error handler:', event.error);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+    });
+
+    console.log('%c🎉 Float Console Test Page Loaded!', 'color: #667eea; font-size: 20px; font-weight: bold;');
+    console.log('Click the buttons above to test different console log types.');
+  </script>
+</body>
+</html>
+

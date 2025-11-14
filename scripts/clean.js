@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const distPath = path.resolve(__dirname, '..', 'dist');
+const distPath = path.resolve(import.meta.dirname, '..', 'dist');
 
 if (fs.existsSync(distPath)) {
   fs.rmSync(distPath, { recursive: true, force: true });

@@ -8,10 +8,16 @@
     "build:dev": "webpack --mode=development --watch",
     "clean": "node scripts/clean.js",
     "icons": "node scripts/generate-icons.js",
-    "zip": "node scripts/zip-extension.js"
+    "zip": "node scripts/zip-extension.js",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "format": "prettier --write \"src/**/*.{js,json,css,html}\"",
+    "format:check": "prettier --check \"src/**/*.{js,json,css,html}\""
   },
   "devDependencies": {
     "copy-webpack-plugin": "^13.0.1",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
     "sharp": "^0.34.5",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1"

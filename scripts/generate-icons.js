@@ -1,8 +1,8 @@
-const sharp = require('sharp');
-const fs = require('fs');
-const path = require('path');
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
 
-const iconsDir = path.resolve(__dirname, '..', 'icons');
+const iconsDir = path.resolve(import.meta.dirname, '..', 'icons');
 
 if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
@@ -19,7 +19,7 @@ async function generateIcon(size) {
     </svg>
   `;
 
-  await sharp(Buffer.from(svg))
+  await sharp(new TextEncoder().encode(svg))
     .png()
     .toFile(path.join(iconsDir, `icon${size}.png`));
   

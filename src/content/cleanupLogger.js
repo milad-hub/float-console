@@ -1,4 +1,4 @@
-(function() {
+(function () {
   'use strict';
 
   if (!window.__FC_ORIGINAL_CONSOLE) {
@@ -7,7 +7,7 @@
 
   const originalConsole = window.__FC_ORIGINAL_CONSOLE;
 
-  ['log', 'warn', 'error', 'info', 'debug'].forEach(method => {
+  ['log', 'warn', 'error', 'info', 'debug'].forEach((method) => {
     if (originalConsole[method]) {
       console[method] = originalConsole[method];
     }

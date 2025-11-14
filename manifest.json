@@ -19,21 +19,27 @@
   },
   "commands": {
     "toggle_dock": {
-      "description": "Toggle the Float Console on/off",
       "suggested_key": {
-        "default": "Ctrl+Shift+X",
-        "mac": "Command+Shift+X"
-      }
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K",
+        "linux": "Ctrl+Shift+K"
+      },
+      "description": "Toggle the Float Console on/off"
     }
   },
   "content_scripts": [{
     "js": ["content/init.js"],
     "matches": ["<all_urls>"],
-    "run_at": "document_start"
+    "run_at": "document_start",
+    "all_frames": false
   }],
-  "permissions": ["storage", "tabs", "scripting"],
+  "permissions": ["storage", "tabs", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
   "web_accessible_resources": [{
     "matches": ["<all_urls>"],
     "resources": ["content/cleanupLogger.js", "content/logger.js", "icons/*"]
-  }]
+  }],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com;"
+  }
 }

@@ -1,84 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Float Console Settings</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <div class="popup-background"></div>
-  <div class="popup-container">
-    <header class="popup-header">
-      <div class="header-icon">⚡</div>
-      <h1>Float Console</h1>
-      <p>Configure your floating console</p>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>Float Console Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;500;600&family=Lato:wght@400;500;700&family=Montserrat:wght@400;500;600&family=Poppins:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="popup-background"></div>
+    <div class="popup-container">
+      <header class="popup-header">
+        <h1>Float Console</h1>
+        <p>Configure your floating console</p>
+      </header>
 
-    <div class="popup-content">
-      <section class="setting-group">
-        <h2>
-          <span class="section-icon">📍</span>
-          Position
-        </h2>
-        <div class="position-grid">
-          <button class="position-btn" data-position="top-left" aria-label="Top left position">
-            <span class="position-icon">↖</span>
-            <span class="position-label">Top Left</span>
-          </button>
-          <button class="position-btn" data-position="top-right" aria-label="Top right position">
-            <span class="position-icon">↗</span>
-            <span class="position-label">Top Right</span>
-          </button>
-          <button class="position-btn" data-position="bottom-left" aria-label="Bottom left position">
-            <span class="position-icon">↙</span>
-            <span class="position-label">Bottom Left</span>
-          </button>
-          <button class="position-btn" data-position="bottom-right" aria-label="Bottom right position">
-            <span class="position-icon">↘</span>
-            <span class="position-label">Bottom Right</span>
-          </button>
-        </div>
-      </section>
+      <div class="popup-content">
+        <section class="setting-group">
+          <h2>
+            <span class="section-icon">📍</span>
+            Position
+          </h2>
+          <div class="position-grid">
+            <button class="position-btn" data-position="top-left" aria-label="Top left position">
+              <span class="position-icon">↖</span>
+              <span class="position-label">Top Left</span>
+            </button>
+            <button class="position-btn" data-position="top-right" aria-label="Top right position">
+              <span class="position-icon">↗</span>
+              <span class="position-label">Top Right</span>
+            </button>
+            <button
+              class="position-btn"
+              data-position="bottom-left"
+              aria-label="Bottom left position"
+            >
+              <span class="position-icon">↙</span>
+              <span class="position-label">Bottom Left</span>
+            </button>
+            <button
+              class="position-btn"
+              data-position="bottom-right"
+              aria-label="Bottom right position"
+            >
+              <span class="position-icon">↘</span>
+              <span class="position-label">Bottom Right</span>
+            </button>
+          </div>
+        </section>
 
-      <section class="setting-group">
-        <h2>
-          <span class="section-icon">⚙️</span>
-          Settings
-        </h2>
-        <label class="toggle-label" for="dock-toggle">
-          <input type="checkbox" id="dock-toggle" aria-label="Enable Float Console">
-          <span class="toggle-slider"></span>
-          <span class="toggle-text">Enable Float Console</span>
-        </label>
-        <label class="toggle-label" for="hover-toggle" style="margin-top: 12px;">
-          <input type="checkbox" id="hover-toggle" aria-label="Show console on hover">
-          <span class="toggle-slider"></span>
-          <span class="toggle-text">Show console on hover</span>
-        </label>
-      </section>
+        <section class="setting-group">
+          <h2>
+            <span class="section-icon">⚙️</span>
+            Settings
+          </h2>
+          <label class="toggle-label" for="dock-toggle">
+            <input type="checkbox" id="dock-toggle" aria-label="Enable Float Console" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Enable Float Console</span>
+          </label>
+          <label class="toggle-label" for="hover-toggle" style="margin-top: 12px">
+            <input type="checkbox" id="hover-toggle" aria-label="Show console on hover" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Show console on hover</span>
+          </label>
+          <label class="toggle-label" for="dark-mode-toggle" style="margin-top: 12px">
+            <input type="checkbox" id="dark-mode-toggle" aria-label="Dark mode" />
+            <span class="toggle-slider"></span>
+            <span class="toggle-text">Dark mode</span>
+          </label>
+          <p
+            style="
+              margin-top: 8px;
+              margin-left: 12px;
+              font-size: 12px;
+              color: rgba(255, 255, 255, 0.6);
+            "
+          >
+            Note: to apply dark mode in Float Console popup, refresh the page.
+          </p>
+        </section>
 
-      <section class="setting-group">
-        <h2>
-          <span class="section-icon">⌨️</span>
-          Keyboard Shortcut
-        </h2>
-        <div class="shortcut-info">
-          <kbd>Ctrl</kbd>
-          <span class="shortcut-plus">+</span>
-          <kbd>Shift</kbd>
-          <span class="shortcut-plus">+</span>
-          <kbd>X</kbd>
-          <span class="shortcut-desc">Toggle console visibility</span>
-        </div>
-      </section>
+        <section class="setting-group">
+          <h2>
+            <span class="section-icon">🔤</span>
+            Font Settings
+          </h2>
+          <div class="font-setting">
+            <label class="font-label" for="log-font-family">Font Family</label>
+            <select id="log-font-family" class="font-select" aria-label="Log font family">
+              <option value="Consolas, 'Monaco', 'Courier New', monospace">
+                Consolas (Monospace)
+              </option>
+              <option value="'Courier New', Courier, monospace">Courier New</option>
+              <option value="'Lucida Console', Monaco, monospace">Lucida Console</option>
+              <option value="'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+                Roboto
+              </option>
+              <option
+                value="'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              >
+                Open Sans
+              </option>
+              <option value="'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+                Lato
+              </option>
+              <option
+                value="'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+              >
+                Montserrat
+              </option>
+              <option value="'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+                Poppins
+              </option>
+              <option value="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+                Inter
+              </option>
+              <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="'Times New Roman', Times, serif">Times New Roman</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+            </select>
+          </div>
+          <div class="font-setting" style="margin-top: 12px">
+            <label class="font-label" for="log-font-size">Font Size</label>
+            <input
+              type="number"
+              id="log-font-size"
+              class="font-input"
+              min="8"
+              max="24"
+              value="12"
+              aria-label="Log font size"
+            />
+            <span class="font-unit">px</span>
+          </div>
+        </section>
+
+        <section class="setting-group">
+          <h2>
+            <span class="section-icon">⌨️</span>
+            Keyboard Shortcut
+          </h2>
+          <div class="shortcut-info">
+            <p>
+              To show/hide popup via keyboard shortcut, you can set it
+              <a href="#" id="shortcut-link" class="shortcut-link">here</a>
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <footer class="popup-footer">
+        <p>v1.0.0</p>
+        <p class="made-with">Made with <span class="heart-icon">❤️</span></p>
+      </footer>
     </div>
 
-    <footer class="popup-footer">
-      <p>v1.0.0</p>
-    </footer>
-  </div>
-
-  <script src="popup.js"></script>
-</body>
+    <script src="popup.js"></script>
+  </body>
 </html>

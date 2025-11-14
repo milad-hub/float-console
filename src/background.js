@@ -1,60 +1,74 @@
-import { sendMessageToActiveTab } from './utils/sendMessageToActiveTab.js';
+const COMMAND_NAME = 'toggle_dock';
+const MAX_RETRIES = 5;
+const RETRY_DELAY = 200;
+const INJECT_DELAY = 200;
 
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'toggle_dock') {
+const DEFAULT_SETTINGS = {
+  dockVisible: false,
+  dockPosition: 'bottom-right',
+  hoverToShow: false,
+};
+
+function isSystemPage(url) {
+  if (!url) return true;
+  return (
+    url.startsWith('chrome://') ||
+    url.startsWith('chrome-extension://') ||
+    url.startsWith('edge://')
+  );
+}
+
+async function sendMessageToTab(tabId, action, retries = MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      
-      if (!tab || !tab.id) {
-        console.warn('No active tab found');
-        return;
-      }
-
-      if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://') || tab.url.startsWith('edge://')) {
-        console.warn('Cannot toggle dock on system pages');
-        return;
-      }
-
-      try {
-        const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleDock' });
-        if (!response) {
-          console.warn('No response from content script, retrying...');
-          setTimeout(async () => {
-            try {
-              await chrome.tabs.sendMessage(tab.id, { action: 'toggleDock' });
-            } catch (retryError) {
-              console.error('Retry failed:', retryError);
-            }
-          }, 200);
-        }
-      } catch (error) {
-        if (chrome.runtime.lastError) {
-          const errorMsg = chrome.runtime.lastError.message;
-          if (errorMsg.includes('Could not establish connection')) {
-            console.warn('Content script not loaded. The page may need to be refreshed.');
-          } else {
-            console.error('Error sending message:', errorMsg);
-          }
-        } else {
-          console.error('Failed to send message:', error);
-        }
+      const response = await chrome.tabs.sendMessage(tabId, { action });
+      if (response && response.status !== 'error') {
+        return response;
       }
     } catch (error) {
-      console.error('Failed to toggle dock:', error);
+      if (i === retries - 1) throw error;
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
     }
+  }
+  throw new Error('Failed to send message after retries');
+}
+
+async function handleToggleDock() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab?.id || isSystemPage(tab.url)) {
+      return;
+    }
+
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content/init.js'],
+      });
+      await new Promise((resolve) => setTimeout(resolve, INJECT_DELAY));
+    } catch (error) {
+      console.error('Float Console: Failed to inject script:', error);
+    }
+
+    await sendMessageToTab(tab.id, 'toggleDock');
+  } catch (error) {
+    console.error('Float Console: Failed to toggle dock:', error);
+  }
+}
+
+chrome.commands.onCommand.addListener((command) => {
+  if (command === COMMAND_NAME) {
+    handleToggleDock();
   }
 });
 
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
     try {
-      await chrome.storage.sync.set({
-        dockVisible: false,
-        dockPosition: 'bottom-right',
-        hoverToShow: false
-      });
+      await chrome.storage.sync.set(DEFAULT_SETTINGS);
     } catch (error) {
-      console.error('Failed to initialize default settings:', error);
+      console.error('Float Console: Failed to initialize settings:', error);
     }
   }
 });
