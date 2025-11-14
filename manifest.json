@@ -4,7 +4,12 @@
   "version": "1.0.0",
   "description": "A floating console that captures logs, warnings, and errors for quick debugging",
   "action": {
-    "default_icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzY2N0VFQSIvPgo8cmVjdCB4PSI0IiB5PSI2IiB3aWR0aD0iMjQiIGhlaWdodD0iMjAiIHJ4PSIyIiBmaWxsPSIjZmZmZmZmIi8+Cjx0ZXh0IHg9IjEwIiB5PSIxOSIgZm9udC1zaXplPSI4IiBmaWxsPSIjMDAwIj5DJjwvdGV4dD4KPHRleHQgeD0iMTgiIHk9IjI1IiBmb250LXNpemU9IjEwIiBmaWxsPSIjMDAwIj7ilrDilrDilrA8L3RleHQ+Cjwvc3ZnPgo=",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "64": "icons/icon64.png",
+      "128": "icons/icon128.png"
+    },
     "default_popup": "popup/popup.html",
     "default_title": "Configure Float Console"
   },
@@ -26,9 +31,9 @@
     "matches": ["<all_urls>"],
     "run_at": "document_start"
   }],
-  "permissions": ["storage"],
+  "permissions": ["storage", "tabs", "scripting"],
   "web_accessible_resources": [{
     "matches": ["<all_urls>"],
-    "resources": ["content/cleanupLogger.js", "content/logger.js"]
+    "resources": ["content/cleanupLogger.js", "content/logger.js", "icons/*"]
   }]
 }

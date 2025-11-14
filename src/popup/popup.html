@@ -7,29 +7,34 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+  <div class="popup-background"></div>
   <div class="popup-container">
     <header class="popup-header">
+      <div class="header-icon">⚡</div>
       <h1>Float Console</h1>
       <p>Configure your floating console</p>
     </header>
 
     <div class="popup-content">
       <section class="setting-group">
-        <h2>Position</h2>
+        <h2>
+          <span class="section-icon">📍</span>
+          Position
+        </h2>
         <div class="position-grid">
-          <button class="position-btn" data-position="top-left">
+          <button class="position-btn" data-position="top-left" aria-label="Top left position">
             <span class="position-icon">↖</span>
             <span class="position-label">Top Left</span>
           </button>
-          <button class="position-btn" data-position="top-right">
+          <button class="position-btn" data-position="top-right" aria-label="Top right position">
             <span class="position-icon">↗</span>
             <span class="position-label">Top Right</span>
           </button>
-          <button class="position-btn" data-position="bottom-left">
+          <button class="position-btn" data-position="bottom-left" aria-label="Bottom left position">
             <span class="position-icon">↙</span>
             <span class="position-label">Bottom Left</span>
           </button>
-          <button class="position-btn" data-position="bottom-right">
+          <button class="position-btn" data-position="bottom-right" aria-label="Bottom right position">
             <span class="position-icon">↘</span>
             <span class="position-label">Bottom Right</span>
           </button>
@@ -37,17 +42,33 @@
       </section>
 
       <section class="setting-group">
-        <label class="toggle-label">
-          <input type="checkbox" id="dock-toggle">
+        <h2>
+          <span class="section-icon">⚙️</span>
+          Settings
+        </h2>
+        <label class="toggle-label" for="dock-toggle">
+          <input type="checkbox" id="dock-toggle" aria-label="Enable Float Console">
           <span class="toggle-slider"></span>
           <span class="toggle-text">Enable Float Console</span>
+        </label>
+        <label class="toggle-label" for="hover-toggle" style="margin-top: 12px;">
+          <input type="checkbox" id="hover-toggle" aria-label="Show console on hover">
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">Show console on hover</span>
         </label>
       </section>
 
       <section class="setting-group">
-        <h3>Keyboard Shortcut</h3>
+        <h2>
+          <span class="section-icon">⌨️</span>
+          Keyboard Shortcut
+        </h2>
         <div class="shortcut-info">
-          <kbd>Ctrl+Shift+X</kbd>
+          <kbd>Ctrl</kbd>
+          <span class="shortcut-plus">+</span>
+          <kbd>Shift</kbd>
+          <span class="shortcut-plus">+</span>
+          <kbd>X</kbd>
           <span class="shortcut-desc">Toggle console visibility</span>
         </div>
       </section>

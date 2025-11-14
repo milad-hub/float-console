@@ -374,16 +374,30 @@ class ConsoleDock {
         width: 600px;
         height: 400px;
         background: rgba(30, 30, 30, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
+                    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
         display: flex;
         flex-direction: column;
         z-index: 10001;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         color: #e0e0e0;
         overflow: hidden;
-        transition: transform 0.2s ease, opacity 0.2s ease;
+        animation: consoleSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, opacity;
+      }
+
+      @keyframes consoleSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
       }
 
       .fc-console.position-top {
@@ -418,24 +432,40 @@ class ConsoleDock {
       }
 
       .fc-tab {
-        padding: 6px 12px;
+        padding: 8px 14px;
         background: transparent;
         border: none;
         color: #999;
         cursor: pointer;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 14px;
-        transition: all 0.2s ease;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
       }
 
       .fc-tab:hover {
         background: rgba(255, 255, 255, 0.1);
         color: #e0e0e0;
+        transform: translateY(-1px);
       }
 
       .fc-tab.active {
         background: rgba(102, 126, 234, 0.3);
         color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+      }
+
+      .fc-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 2px;
+        background: #667eea;
+        border-radius: 2px;
       }
 
       .fc-header-actions {
@@ -445,19 +475,49 @@ class ConsoleDock {
 
       .fc-clear,
       .fc-close {
-        padding: 6px 12px;
+        padding: 8px 14px;
         background: rgba(255, 255, 255, 0.1);
         border: none;
         color: #e0e0e0;
         cursor: pointer;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 14px;
-        transition: all 0.2s ease;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .fc-clear::before,
+      .fc-close::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.3s ease, height 0.3s ease;
+      }
+
+      .fc-clear:hover::before,
+      .fc-close:hover::before {
+        width: 100px;
+        height: 100px;
       }
 
       .fc-clear:hover,
       .fc-close:hover {
         background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .fc-clear:active,
+      .fc-close:active {
+        transform: scale(0.95);
       }
 
       .fc-close {
@@ -509,13 +569,31 @@ class ConsoleDock {
       .fc-log {
         display: flex;
         gap: 12px;
-        padding: 8px 0;
+        padding: 10px 12px;
+        margin: 2px 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        transition: background 0.2s ease;
+        border-radius: 6px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: logFadeIn 0.2s ease-out;
+        will-change: background, transform;
+      }
+
+      @keyframes logFadeIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
       }
 
       .fc-log:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateX(4px);
+        border-left: 2px solid rgba(102, 126, 234, 0.5);
+        padding-left: 10px;
       }
 
       .fc-log-time {
@@ -563,17 +641,27 @@ class ConsoleDock {
         background: rgba(102, 126, 234, 0.2);
         border: 1px solid rgba(102, 126, 234, 0.4);
         color: #667eea;
-        padding: 4px 8px;
-        border-radius: 4px;
+        padding: 6px 12px;
+        border-radius: 6px;
         cursor: pointer;
         font-size: 11px;
+        font-weight: 600;
         margin-left: auto;
         flex-shrink: 0;
-        transition: all 0.2s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .fc-read-more:hover {
-        background: rgba(102, 126, 234, 0.3);
+        background: rgba(102, 126, 234, 0.4);
+        border-color: rgba(102, 126, 234, 0.6);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      }
+
+      .fc-read-more:active {
+        transform: translateY(0);
       }
 
       .fc-resize-handle-vertical {
@@ -604,6 +692,23 @@ class ConsoleDock {
       .fc-console.resizing {
         user-select: none;
       }
+
+      .fc-resize-handle-vertical:hover,
+      .fc-resize-handle-horizontal:hover {
+        background: rgba(102, 126, 234, 0.3);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .fc-console,
+        .fc-log,
+        .fc-tab,
+        .fc-clear,
+        .fc-close,
+        .fc-read-more {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
     `;
   }
 }
@@ -613,10 +718,12 @@ class Draggable {
     this.element = element;
     this.onPositionChange = onPositionChange;
     this.isDragging = false;
+    this.hasDragged = false;
     this.startX = 0;
     this.startY = 0;
     this.initialLeft = 0;
     this.initialTop = 0;
+    this.animationFrameId = null;
     this.boundMouseMove = this.onMouseMove.bind(this);
     this.boundMouseUp = this.onMouseUp.bind(this);
 
@@ -624,8 +731,12 @@ class Draggable {
   }
 
   onMouseDown(event) {
+    if (event.target.closest('.fc-button-badge')) {
+      return;
+    }
     event.preventDefault();
     this.isDragging = true;
+    this.hasDragged = false;
 
     const rect = this.element.getBoundingClientRect();
     this.startX = event.clientX;
@@ -638,42 +749,66 @@ class Draggable {
       left: `${rect.left}px`,
       top: `${rect.top}px`,
       right: 'auto',
-      bottom: 'auto'
+      bottom: 'auto',
+      transition: 'none'
     });
 
     this.element.classList.add('dragging');
 
-    document.addEventListener('mousemove', this.boundMouseMove);
+    document.addEventListener('mousemove', this.boundMouseMove, { passive: true });
     document.addEventListener('mouseup', this.boundMouseUp);
   }
 
   onMouseMove(event) {
     if (!this.isDragging) return;
 
-    const deltaX = event.clientX - this.startX;
-    const deltaY = event.clientY - this.startY;
+    const deltaX = Math.abs(event.clientX - this.startX);
+    const deltaY = Math.abs(event.clientY - this.startY);
 
-    const newLeft = this.initialLeft + deltaX;
-    const newTop = this.initialTop + deltaY;
+    if (deltaX > 5 || deltaY > 5) {
+      this.hasDragged = true;
+    }
 
-    Object.assign(this.element.style, {
-      left: `${newLeft}px`,
-      top: `${newTop}px`
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    this.animationFrameId = requestAnimationFrame(() => {
+      const newLeft = this.initialLeft + (event.clientX - this.startX);
+      const newTop = this.initialTop + (event.clientY - this.startY);
+
+      this.element.style.left = `${newLeft}px`;
+      this.element.style.top = `${newTop}px`;
     });
   }
 
   onMouseUp(event) {
     if (!this.isDragging) return;
 
+    const wasDragging = this.hasDragged;
     this.isDragging = false;
     this.element.classList.remove('dragging');
+
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
 
     document.removeEventListener('mousemove', this.boundMouseMove);
     document.removeEventListener('mouseup', this.boundMouseUp);
 
-    const newPosition = this.getNearestCorner(event.clientX, event.clientY);
-    this.resetPositioning();
-    this.onPositionChange(newPosition);
+    if (wasDragging) {
+      const newPosition = this.getNearestCorner(event.clientX, event.clientY);
+      this.resetPositioning();
+      this.onPositionChange(newPosition);
+      event.preventDefault();
+      event.stopPropagation();
+      setTimeout(() => {
+        this.hasDragged = false;
+      }, 0);
+    } else {
+      this.hasDragged = false;
+    }
   }
 
   getNearestCorner(mouseX, mouseY) {
@@ -697,6 +832,9 @@ class Draggable {
     this.element.removeEventListener('mousedown', this.onMouseDown.bind(this));
     document.removeEventListener('mousemove', this.boundMouseMove);
     document.removeEventListener('mouseup', this.boundMouseUp);
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
     this.isDragging = false;
     this.element.classList.remove('dragging');
     this.resetPositioning();
@@ -720,28 +858,75 @@ class DockManager {
     if (this.isVisible) {
       this.createButton();
     }
-
-    chrome.runtime.onMessage.addListener(this.handleMessage.bind(this));
   }
 
   handleMessage(message, sender, sendResponse) {
     switch (message.action) {
       case 'toggleDock':
-        this.toggle();
+        this.handleToggleDock();
+        break;
+      case 'updateVisibility':
+        this.updateVisibility(message.visible);
         break;
       case 'changePosition':
         this.updatePosition(message.position);
+        break;
+      case 'updateHoverSetting':
+        this.hoverToShow = message.hoverToShow;
+        this.updateHoverListeners();
         break;
     }
     sendResponse({ status: 'ok' });
     return true;
   }
 
+  updateVisibility(visible) {
+    this.isVisible = visible;
+    if (visible) {
+      if (!this.button) {
+        this.createButton();
+      }
+      this.show();
+    } else {
+      this.hide();
+    }
+    this.saveState();
+  }
+
+  handleToggleDock() {
+    if (!this.isVisible || !this.button) {
+      if (!this.button) {
+        this.isVisible = true;
+        this.show();
+      } else {
+        this.isVisible = true;
+        this.show();
+      }
+    }
+    
+    requestAnimationFrame(() => {
+      if (this.console) {
+        this.console.toggle();
+      } else if (this.button) {
+        this.handleButtonClick();
+      } else {
+        setTimeout(() => {
+          if (this.console) {
+            this.console.toggle();
+          } else if (this.button) {
+            this.handleButtonClick();
+          }
+        }, 100);
+      }
+    });
+  }
+
   async loadState() {
     try {
-      const { dockVisible = false, dockPosition = 'bottom-right' } = await chrome.storage.sync.get(['dockVisible', 'dockPosition']);
+      const { dockVisible = false, dockPosition = 'bottom-right', hoverToShow = false } = await chrome.storage.sync.get(['dockVisible', 'dockPosition', 'hoverToShow']);
       this.isVisible = dockVisible;
       this.position = dockPosition;
+      this.hoverToShow = hoverToShow;
     } catch (error) {
       console.warn('Failed to load dock state:', error);
     }
@@ -767,16 +952,27 @@ class DockManager {
     this.button.title = 'Float Console';
     this.button.setAttribute('aria-label', 'Toggle Float Console');
 
-    const icon = document.createElement('div');
+    const icon = document.createElement('img');
     icon.className = 'fc-button-icon';
-    icon.innerHTML = 'C';
+    icon.src = chrome.runtime.getURL('icons/icon32.png');
+    icon.alt = 'Float Console';
 
     const badge = document.createElement('span');
     badge.className = 'fc-button-badge';
 
     this.button.appendChild(icon);
     this.button.appendChild(badge);
-    this.button.addEventListener('click', this.handleButtonClick.bind(this));
+    
+    this.button.addEventListener('click', (e) => {
+      if (this.draggable && this.draggable.hasDragged) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      this.handleButtonClick();
+    });
+
+    this.updateHoverListeners();
 
     this.shadowRoot.appendChild(this.button);
 
@@ -794,6 +990,9 @@ class DockManager {
   }
 
   handleButtonClick() {
+    if (this.draggable && this.draggable.hasDragged) {
+      return;
+    }
     if (this.console) {
       this.console.toggle();
     }
@@ -810,7 +1009,6 @@ class DockManager {
       this.createButton();
     }
     this.isVisible = true;
-    this.saveState();
   }
 
   hide() {
@@ -819,7 +1017,42 @@ class DockManager {
     }
     this.isVisible = false;
     this.console?.hide();
-    this.saveState();
+  }
+
+  updateHoverListeners() {
+    if (!this.button) return;
+
+    const existingEnter = this.button._hoverEnterHandler;
+    const existingLeave = this.button._hoverLeaveHandler;
+
+    if (existingEnter) {
+      this.button.removeEventListener('mouseenter', existingEnter);
+    }
+    if (existingLeave) {
+      this.button.removeEventListener('mouseleave', existingLeave);
+    }
+
+    if (this.hoverToShow) {
+      this.hoverTimeout = null;
+      const enterHandler = () => {
+        this.hoverTimeout = setTimeout(() => {
+          if (this.console && !this.console.isVisible) {
+            this.console.show();
+          }
+        }, 500);
+      };
+      const leaveHandler = () => {
+        if (this.hoverTimeout) {
+          clearTimeout(this.hoverTimeout);
+          this.hoverTimeout = null;
+        }
+      };
+
+      this.button._hoverEnterHandler = enterHandler;
+      this.button._hoverLeaveHandler = leaveHandler;
+      this.button.addEventListener('mouseenter', enterHandler);
+      this.button.addEventListener('mouseleave', leaveHandler);
+    }
   }
 
   updatePosition(position) {
@@ -849,6 +1082,15 @@ class DockManager {
   destroy() {
     if (this.button) {
       this.button.removeEventListener('click', this.handleButtonClick.bind(this));
+      if (this.hoverTimeout) {
+        clearTimeout(this.hoverTimeout);
+      }
+      if (this.button._hoverEnterHandler) {
+        this.button.removeEventListener('mouseenter', this.button._hoverEnterHandler);
+      }
+      if (this.button._hoverLeaveHandler) {
+        this.button.removeEventListener('mouseleave', this.button._hoverLeaveHandler);
+      }
       this.button.remove();
       this.button = null;
     }
@@ -899,6 +1141,7 @@ class DockManager {
       .fc-dock-button.dragging {
         cursor: grabbing;
         transform: scale(1.05);
+        transition: none;
       }
 
       .fc-dock-button.bottom-left {
@@ -922,10 +1165,11 @@ class DockManager {
       }
 
       .fc-button-icon {
-        font-size: 24px;
-        font-weight: 600;
-        line-height: 1;
+        width: 28px;
+        height: 28px;
         pointer-events: none;
+        user-select: none;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
       }
 
       .fc-button-badge {
@@ -964,8 +1208,29 @@ class DockManager {
   }
 }
 
+let dockManagerInstance = null;
+
+function getDockManager() {
+  if (!dockManagerInstance) {
+    dockManagerInstance = new DockManager();
+  }
+  return dockManagerInstance;
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'toggleDock' || message.action === 'updateVisibility' || message.action === 'changePosition' || message.action === 'updateHoverSetting') {
+    const manager = getDockManager();
+    if (manager && manager.handleMessage) {
+      return manager.handleMessage(message, sender, sendResponse);
+    }
+  }
+  return false;
+});
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => new DockManager());
+  document.addEventListener('DOMContentLoaded', () => {
+    getDockManager();
+  });
 } else {
-  new DockManager();
+  getDockManager();
 }

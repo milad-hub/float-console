@@ -4,12 +4,15 @@
   "description": "A floating console that captures logs, warnings, and errors for quick debugging",
   "scripts": {
     "build": "webpack --mode=production",
+    "dev": "webpack --mode=development --watch",
     "build:dev": "webpack --mode=development --watch",
-    "clean": "rm -rf dist",
+    "clean": "node scripts/clean.js",
+    "icons": "node scripts/generate-icons.js",
     "zip": "node scripts/zip-extension.js"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^13.0.1",
+    "sharp": "^0.34.5",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1"
   },
