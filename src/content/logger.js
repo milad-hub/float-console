@@ -211,8 +211,26 @@
     return JSON.stringify({ parts, hasStyles: false });
   }
 
+  function getSourceFile() {
+    try {
+      const stack = new Error().stack;
+      if (stack) {
+        const lines = stack.split('\n');
+        if (lines.length > 2) {
+          const match = lines[2].match(/\((.+):(\d+):(\d+)\)/) || lines[2].match(/at (.+):(\d+):(\d+)/);
+          if (match && match[1]) {
+            return match[1];
+          }
+        }
+      }
+    } catch (e) {
+    }
+    return null;
+  }
+
   function postLog(type, message, metadata = {}) {
     try {
+      const sourceFile = getSourceFile();
       const messageData = {
         type: 'FC_CONSOLE_LOG',
         data: {
@@ -223,6 +241,7 @@
           inGroup: metadata.inGroup || false,
           isGroupStart: metadata.isGroupStart || false,
           collapsed: metadata.collapsed || false,
+          sourceFile: sourceFile,
         },
       };
 

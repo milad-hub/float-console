@@ -22,7 +22,7 @@ class Logger {
       if (!event.data || event.data.type !== 'FC_CONSOLE_LOG') return;
       if (!event.data.data || typeof event.data.data !== 'object') return;
 
-      const { type, message, timestamp, groupDepth, inGroup, isGroupStart, collapsed } =
+      const { type, message, timestamp, groupDepth, inGroup, isGroupStart, collapsed, sourceFile } =
         event.data.data;
 
       const validTypes = ['log', 'warn', 'error', 'info', 'debug', 'group', 'groupEnd'];
@@ -37,6 +37,7 @@ class Logger {
         inGroup,
         isGroupStart,
         collapsed,
+        sourceFile,
       });
     };
 
@@ -69,6 +70,7 @@ class Logger {
       inGroup: metadata.inGroup || false,
       isGroupStart: metadata.isGroupStart || false,
       collapsed: metadata.collapsed || false,
+      sourceFile: metadata.sourceFile || null,
       pinned: false,
       id: Date.now() + Math.random(),
     };
@@ -131,6 +133,113 @@ class Logger {
 }
 
 class Renderer {
+  static formatLogText(logEntry) {
+    let text = '';
+    try {
+      let message = logEntry.message;
+      
+      if (typeof message === 'string') {
+        try {
+          const parsed = JSON.parse(message);
+          if (parsed && typeof parsed === 'object' && Array.isArray(parsed.parts)) {
+            message = parsed;
+          }
+        } catch (e) {
+          return message.trim();
+        }
+      }
+      
+      if (typeof message === 'object' && message !== null) {
+        if (message.groupLabel !== undefined) {
+          const groupLabel = message.groupLabel;
+          const groupLogs = message.groupLogs || [];
+          text = `${groupLabel} ${groupLogs.map((gl) => Renderer.formatLogText(gl)).join(' ')}`;
+        } else if (Array.isArray(message.parts)) {
+          text = message.parts.map((p) => p.text || '').join('');
+        } else {
+          text = String(message);
+        }
+      } else {
+        text = String(message);
+      }
+    } catch (e) {
+      text = String(logEntry.message);
+    }
+    return text.trim();
+  }
+
+  static formatLogTextForCopy(logEntry) {
+    let text = '';
+    try {
+      if (typeof logEntry.message === 'object' && logEntry.message !== null) {
+        if (logEntry.message.groupLabel !== undefined) {
+          const groupLabel = logEntry.message.groupLabel;
+          const groupLogs = logEntry.message.groupLogs || [];
+          text = `${groupLabel}\n${groupLogs.map((gl) => Renderer.formatLogTextForCopy(gl)).join('\n')}`;
+        } else if (Array.isArray(logEntry.message.parts)) {
+          text = logEntry.message.parts.map((p) => p.text || '').join('');
+        } else {
+          text = String(logEntry.message);
+        }
+      } else {
+        text = String(logEntry.message);
+      }
+    } catch (e) {
+      text = String(logEntry.message);
+    }
+    return text;
+  }
+
+  static parseLogId(logId) {
+    return parseFloat(logId) || logId;
+  }
+
+  static findLogById(logs, logId) {
+    const id = Renderer.parseLogId(logId);
+    return logs.find((l) => {
+      const logIdNum = Renderer.parseLogId(l.id);
+      return logIdNum === id || String(logIdNum) === String(id);
+    });
+  }
+
+  static isTextSelected() {
+    const selection = window.getSelection();
+    return selection && selection.toString().length > 0;
+  }
+
+  static createClickHandler(callback, options = {}) {
+    const { maxTime = 300, maxDistance = 5 } = options;
+    let mouseDownTime = 0;
+    let mouseDownPos = { x: 0, y: 0 };
+    let mouseButton = null;
+
+    return {
+      onMouseDown: (e) => {
+        if (e.button !== 0) return;
+        mouseButton = e.button;
+        mouseDownTime = Date.now();
+        mouseDownPos = { x: e.clientX, y: e.clientY };
+      },
+      onMouseUp: (e) => {
+        if (e.button !== 0 || mouseButton !== 0) return;
+        if (Renderer.isTextSelected()) return;
+
+        const mouseUpTime = Date.now();
+        const mouseUpPos = { x: e.clientX, y: e.clientY };
+        const timeDiff = mouseUpTime - mouseDownTime;
+        const distance = Math.sqrt(
+          Math.pow(mouseUpPos.x - mouseDownPos.x, 2) +
+          Math.pow(mouseUpPos.y - mouseDownPos.y, 2)
+        );
+
+        if (timeDiff < maxTime && distance < maxDistance) {
+          callback(e);
+        }
+        mouseButton = null;
+      },
+    };
+  }
+
   getTemplate() {
     return `
       <div class="fc-console-header">
@@ -162,10 +271,6 @@ class Renderer {
                 <input type="checkbox" value="debug" checked />
                 <span>Debug</span>
               </label>
-              <label class="fc-log-type-item">
-                <input type="checkbox" value="group" checked />
-                <span>Group</span>
-              </label>
             </div>
           </div>
           <button class="fc-filter" aria-label="Filter logs" title="Filter logs">Filter</button>
@@ -191,6 +296,12 @@ class Renderer {
       </div>
       <div class="fc-resize-handle-vertical"></div>
       <div class="fc-resize-handle-horizontal"></div>
+      <div class="fc-context-menu fc-context-menu-hidden">
+        <button class="fc-context-menu-item" data-action="exclude-message">Don't show this message again</button>
+        <button class="fc-context-menu-item" data-action="exclude-file">Don't show logs from this file</button>
+        <div class="fc-context-menu-separator"></div>
+        <button class="fc-context-menu-item" data-action="reset-filters">Reset all filters</button>
+      </div>
     `;
   }
 
@@ -243,6 +354,9 @@ class Renderer {
   renderLogs(panel, logs, consoleDock = null) {
     if (logs.length === 0) {
       panel.innerHTML = '<p class="fc-empty">No logs yet</p>';
+      if (consoleDock) {
+        this.attachContextMenuListeners(panel, consoleDock);
+      }
       return;
     }
 
@@ -399,7 +513,7 @@ class Renderer {
       const groupContent = logRow?.querySelector('.fc-group-content');
 
       if (toggle && groupContent) {
-        const toggleGroup = (e) => {
+        const clickHandler = Renderer.createClickHandler((e) => {
           e.stopPropagation();
           const isCollapsed = groupContent.style.display === 'none';
           groupContent.style.display = isCollapsed ? 'block' : 'none';
@@ -407,10 +521,13 @@ class Renderer {
             ? renderer.getChevronDownIcon()
             : renderer.getChevronUpIcon();
           logRow.classList.toggle('fc-group-collapsed', !isCollapsed);
-        };
+        });
 
+        contentArea.addEventListener('mousedown', clickHandler.onMouseDown);
+        contentArea.addEventListener('mouseup', clickHandler.onMouseUp);
         contentArea.style.cursor = 'pointer';
-        contentArea.addEventListener('click', toggleGroup);
+      } else {
+        contentArea.style.cursor = 'default';
       }
     });
 
@@ -419,7 +536,7 @@ class Renderer {
         e.stopPropagation();
         const logId = button.dataset.logId;
         if (logId && consoleDock) {
-          const id = parseFloat(logId) || logId;
+          const id = Renderer.parseLogId(logId);
           consoleDock.logger.deleteLog(id);
           consoleDock.renderConsoleLogs();
           consoleDock.updateLogCountBadge();
@@ -432,7 +549,7 @@ class Renderer {
         e.stopPropagation();
         const logId = button.dataset.logId;
         if (logId && consoleDock) {
-          const id = parseFloat(logId) || logId;
+          const id = Renderer.parseLogId(logId);
           consoleDock.logger.togglePin(id);
           consoleDock.renderConsoleLogs();
         }
@@ -444,43 +561,11 @@ class Renderer {
         e.stopPropagation();
         const logId = button.dataset.logId;
         if (logId && consoleDock) {
-          const id = parseFloat(logId) || logId;
-          const log = consoleDock.logger.getLogs().find((l) => l.id === id);
+          const log = Renderer.findLogById(consoleDock.logger.getLogs(), logId);
           if (log) {
-            const formatLogText = (log) => {
-              let text = '';
-              try {
-                if (typeof log.message === 'object' && log.message !== null) {
-                  if (log.message.groupLabel !== undefined) {
-                    const groupLabel = log.message.groupLabel;
-                    const groupLogs = log.message.groupLogs || [];
-                    text = `${groupLabel}\n${groupLogs.map((gl) => formatLogText(gl)).join('\n')}`;
-                  } else if (Array.isArray(log.message.parts)) {
-                    text = log.message.parts.map((p) => p.text || '').join('');
-                  } else {
-                    text = String(log.message);
-                  }
-                } else {
-                  text = String(log.message);
-                }
-              } catch (e) {
-                text = String(log.message);
-              }
-              return text;
-            };
-
-            const timestamp = (date) => {
-              return date.toLocaleTimeString('en-US', {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              });
-            };
-
-            const time = timestamp(log.timestamp);
+            const time = renderer.formatTime(log.timestamp);
             const type = log.type.toUpperCase();
-            const message = formatLogText(log);
+            const message = Renderer.formatLogTextForCopy(log);
             const logText = `[${time}] ${type}: ${message}`;
 
             navigator.clipboard
@@ -513,6 +598,8 @@ class Renderer {
         logRow.style.paddingBottom = '2px';
 
         const toggleExpand = (e) => {
+          if (e.button && e.button !== 0) return;
+          if (Renderer.isTextSelected()) return;
           e.stopPropagation();
           message.classList.toggle('expanded');
           button.innerHTML = message.classList.contains('expanded')
@@ -520,10 +607,14 @@ class Renderer {
             : renderer.getChevronDownIcon();
         };
 
+        const clickHandler = Renderer.createClickHandler(toggleExpand);
+        contentArea.addEventListener('mousedown', clickHandler.onMouseDown);
+        contentArea.addEventListener('mouseup', clickHandler.onMouseUp);
         contentArea.style.cursor = 'pointer';
-        contentArea.addEventListener('click', toggleExpand);
         button.style.cursor = 'pointer';
         button.addEventListener('click', toggleExpand);
+      } else {
+        contentArea.style.cursor = 'default';
       }
     });
 
@@ -534,7 +625,137 @@ class Renderer {
       cumulativeTop += pinnedLog.offsetHeight + 4;
     });
 
+    if (consoleDock) {
+      this.attachContextMenuListeners(panel, consoleDock);
+    }
+
     panel.scrollTop = panel.scrollHeight;
+  }
+
+  attachContextMenuListeners(panel, consoleDock) {
+    const contextMenu = consoleDock.container?.querySelector('.fc-context-menu');
+    if (!contextMenu) return;
+
+    if (!consoleDock._contextMenuInitialized) {
+      let currentLogId = null;
+
+      const hideContextMenu = () => {
+        contextMenu.classList.add('fc-context-menu-hidden');
+        currentLogId = null;
+      };
+
+      const showContextMenu = (e, logId = null) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        currentLogId = logId;
+
+        const rect = consoleDock.container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        contextMenu.style.left = `${x}px`;
+        contextMenu.style.top = `${y}px`;
+        contextMenu.classList.remove('fc-context-menu-hidden');
+
+        const excludeMessageBtn = contextMenu.querySelector('[data-action="exclude-message"]');
+        const excludeFileBtn = contextMenu.querySelector('[data-action="exclude-file"]');
+
+        const log = logId ? Renderer.findLogById(consoleDock.logger.getLogs(), logId) : null;
+        
+        if (excludeMessageBtn) {
+          excludeMessageBtn.style.display = logId ? 'block' : 'none';
+        }
+        if (excludeFileBtn) {
+          excludeFileBtn.style.display = log?.sourceFile ? 'block' : 'none';
+        }
+      };
+
+      const handleContextMenuClick = async (e) => {
+        e.stopPropagation();
+        const menuItem = e.target.closest('.fc-context-menu-item');
+        if (!menuItem) return;
+        const action = menuItem.dataset.action;
+        if (!action) return;
+
+        if (action === 'reset-filters') {
+          await consoleDock.resetFilters();
+          hideContextMenu();
+          return;
+        }
+
+        if (!currentLogId) return;
+
+        const log = Renderer.findLogById(consoleDock.logger.getLogs(), currentLogId);
+        if (!log) {
+          console.warn('Float Console: Log not found for ID:', currentLogId);
+          hideContextMenu();
+          return;
+        }
+
+        try {
+          if (action === 'exclude-message') {
+            await consoleDock.excludeMessagePattern(log);
+          } else if (action === 'exclude-file' && log.sourceFile) {
+            await consoleDock.excludeFilePattern(log.sourceFile);
+          }
+        } catch (error) {
+          console.error('Float Console: Error executing context menu action:', error);
+        }
+
+        hideContextMenu();
+      };
+
+      const handleDocumentClick = (e) => {
+        if (!contextMenu.contains(e.target) && !panel.contains(e.target)) {
+          hideContextMenu();
+        }
+      };
+
+      const handleDocumentContextMenu = (e) => {
+        if (!contextMenu.contains(e.target) && !panel.contains(e.target)) {
+          hideContextMenu();
+        }
+      };
+
+      contextMenu.querySelectorAll('.fc-context-menu-item').forEach((item) => {
+        item.addEventListener('click', handleContextMenuClick);
+      });
+
+      document.addEventListener('click', handleDocumentClick);
+      document.addEventListener('contextmenu', handleDocumentContextMenu);
+
+      consoleDock._contextMenuInitialized = true;
+      consoleDock._contextMenuHandlers = {
+        showContextMenu,
+        hideContextMenu,
+        handleDocumentClick,
+        handleDocumentContextMenu,
+      };
+    }
+
+    const { showContextMenu } = consoleDock._contextMenuHandlers || {};
+    if (showContextMenu) {
+      panel.querySelectorAll('.fc-log').forEach((logElement) => {
+        logElement.addEventListener('contextmenu', (e) => {
+          const logId = logElement.dataset.logId;
+          if (logId) {
+            showContextMenu(e, logId);
+          }
+        });
+      });
+
+      const emptyMessage = panel.querySelector('.fc-empty');
+      if (emptyMessage) {
+        emptyMessage.addEventListener('contextmenu', (e) => showContextMenu(e, null));
+      } else {
+        panel.addEventListener('contextmenu', (e) => {
+          if (!e.target.closest('.fc-log')) {
+            showContextMenu(e, null);
+          }
+        });
+      }
+    }
   }
 
   formatTime(date) {
@@ -782,7 +1003,9 @@ class ConsoleDock {
     this.filterText = '';
     this.logFontFamily = "Consolas, 'Monaco', 'Courier New', monospace";
     this.logFontSize = 12;
-    this.enabledLogTypes = ['log', 'info', 'warn', 'error', 'debug', 'group'];
+    this.enabledLogTypes = ['log', 'info', 'warn', 'error', 'debug'];
+    this.messageFilters = [];
+    this.fileFilters = [];
 
     this.logger = new Logger();
     this.renderer = new Renderer();
@@ -801,6 +1024,8 @@ class ConsoleDock {
     this.darkModeLoaded = this.loadDarkMode();
     this.fontSettingsLoaded = this.loadFontSettings();
     this.logTypesLoaded = this.loadLogTypes();
+    this.messageFiltersLoaded = this.loadMessageFilters();
+    this.fileFiltersLoaded = this.loadFileFilters();
   }
 
   async loadDarkMode() {
@@ -852,6 +1077,30 @@ class ConsoleDock {
     } catch (error) {
       console.warn('Failed to load log types:', error);
       return this.enabledLogTypes;
+    }
+  }
+
+  async loadMessageFilters() {
+    try {
+      const { messageFilters } = await chrome.storage.sync.get(['messageFilters']);
+      this.messageFilters = Array.isArray(messageFilters) ? messageFilters : [];
+      return this.messageFilters;
+    } catch (error) {
+      console.warn('Failed to load message filters:', error);
+      this.messageFilters = [];
+      return this.messageFilters;
+    }
+  }
+
+  async loadFileFilters() {
+    try {
+      const { fileFilters } = await chrome.storage.sync.get(['fileFilters']);
+      this.fileFilters = Array.isArray(fileFilters) ? fileFilters : [];
+      return this.fileFilters;
+    } catch (error) {
+      console.warn('Failed to load file filters:', error);
+      this.fileFilters = [];
+      return this.fileFilters;
     }
   }
 
@@ -911,6 +1160,8 @@ class ConsoleDock {
     await this.darkModeLoaded;
     await this.fontSettingsLoaded;
     await this.logTypesLoaded;
+    await this.messageFiltersLoaded;
+    await this.fileFiltersLoaded;
     if (this.container) {
       this.container.style.display = 'flex';
       this.updateDarkMode();
@@ -963,6 +1214,8 @@ class ConsoleDock {
 
   async createConsole() {
     await this.logTypesLoaded;
+    await this.messageFiltersLoaded;
+    await this.fileFiltersLoaded;
     this.container = document.createElement('div');
     this.container.className = `fc-console ${this.getPositionClass()} ${this.getHorizontalClass()}`;
     if (this.darkMode) {
@@ -1180,6 +1433,12 @@ class ConsoleDock {
       // Apply log type filter first
       logs = this.filterLogsByType(logs);
 
+      // Apply message pattern filters
+      logs = this.filterLogsByMessagePattern(logs);
+
+      // Apply file filters
+      logs = this.filterLogsByFile(logs);
+
       // Apply text filter if filter text exists
       if (this.filterText) {
         logs = this.filterLogs(logs);
@@ -1194,19 +1453,17 @@ class ConsoleDock {
       return logs;
     }
 
-    const groupTypeEnabled = this.enabledLogTypes.includes('group');
-
     return logs.filter((log) => {
       if (log.isGroupStart) {
-        return groupTypeEnabled;
+        return true;
       }
 
       if (log.type === 'groupEnd') {
-        return groupTypeEnabled;
+        return true;
       }
 
       if ((log.groupDepth || 0) > 0 || log.inGroup) {
-        return groupTypeEnabled;
+        return true;
       }
 
       return this.enabledLogTypes.includes(log.type);
@@ -1259,6 +1516,117 @@ class ConsoleDock {
     });
   }
 
+  filterLogsByMessagePattern(logs) {
+    if (!this.messageFilters || this.messageFilters.length === 0) {
+      return logs;
+    }
+
+    return logs.filter((log) => {
+      const messageText = Renderer.formatLogText(log);
+      const normalizedMessage = messageText.toLowerCase().trim();
+      return !this.messageFilters.some((pattern) => {
+        try {
+          if (pattern.startsWith('/') && pattern.endsWith('/')) {
+            const regex = new RegExp(pattern.slice(1, -1), 'i');
+            return regex.test(messageText);
+          }
+          const normalizedPattern = pattern.toLowerCase().trim();
+          return normalizedMessage.includes(normalizedPattern) || normalizedMessage === normalizedPattern;
+        } catch (e) {
+          const normalizedPattern = pattern.toLowerCase().trim();
+          return normalizedMessage.includes(normalizedPattern) || normalizedMessage === normalizedPattern;
+        }
+      });
+    });
+  }
+
+  filterLogsByFile(logs) {
+    if (!this.fileFilters || this.fileFilters.length === 0) {
+      return logs;
+    }
+
+    return logs.filter((log) => {
+      if (!log.sourceFile) {
+        return true;
+      }
+      return !this.fileFilters.some((pattern) => {
+        try {
+          if (pattern.startsWith('/') && pattern.endsWith('/')) {
+            const regex = new RegExp(pattern.slice(1, -1), 'i');
+            return regex.test(log.sourceFile);
+          }
+          return log.sourceFile.includes(pattern);
+        } catch (e) {
+          return log.sourceFile.includes(pattern);
+        }
+      });
+    });
+  }
+
+  async excludeMessagePattern(log) {
+    if (!log) {
+      console.warn('Float Console: excludeMessagePattern called with null/undefined log');
+      return;
+    }
+
+    const messageText = Renderer.formatLogText(log);
+    if (!messageText) {
+      console.warn('Float Console: Could not extract message text from log');
+      return;
+    }
+
+    if (!this.messageFilters) {
+      this.messageFilters = [];
+    }
+
+    const normalizedMessage = messageText.toLowerCase().trim();
+    const alreadyExists = this.messageFilters.some((pattern) => {
+      const normalizedPattern = pattern.toLowerCase().trim();
+      return normalizedPattern === normalizedMessage;
+    });
+
+    if (!alreadyExists) {
+      this.messageFilters.push(messageText.trim());
+      try {
+        await chrome.storage.sync.set({ messageFilters: this.messageFilters });
+        this.renderConsoleLogs();
+      } catch (error) {
+        console.error('Float Console: Failed to save message filter:', error);
+      }
+    } else {
+      console.log('Float Console: Message filter already exists:', messageText);
+    }
+  }
+
+  async excludeFilePattern(sourceFile) {
+    if (!sourceFile) return;
+
+    if (!this.fileFilters) {
+      this.fileFilters = [];
+    }
+
+    if (!this.fileFilters.includes(sourceFile)) {
+      this.fileFilters.push(sourceFile);
+      try {
+        await chrome.storage.sync.set({ fileFilters: this.fileFilters });
+        this.renderConsoleLogs();
+      } catch (error) {
+        console.error('Float Console: Failed to save file filter:', error);
+      }
+    }
+  }
+
+  async resetFilters() {
+    this.messageFilters = [];
+    this.fileFilters = [];
+    try {
+      await chrome.storage.sync.set({ messageFilters: [], fileFilters: [] });
+      this.renderConsoleLogs();
+    } catch (error) {
+      console.error('Float Console: Failed to reset filters:', error);
+    }
+  }
+
   clearConsole() {
     this.logger.clear();
     this.updateLogCountBadge();
@@ -1268,6 +1636,8 @@ class ConsoleDock {
   copyAllLogs() {
     let logs = this.logger.getLogs();
     logs = this.filterLogsByType(logs);
+    logs = this.filterLogsByMessagePattern(logs);
+    logs = this.filterLogsByFile(logs);
     if (this.filterText) {
       logs = this.filterLogs(logs);
     }
@@ -1276,45 +1646,10 @@ class ConsoleDock {
       return;
     }
 
-    const formatLogText = (log) => {
-      let text = '';
-      try {
-        if (typeof log.message === 'object' && log.message !== null) {
-          if (log.message.groupLabel !== undefined) {
-            const groupLabel = log.message.groupLabel;
-            const groupLogs = log.message.groupLogs || [];
-            text = `${groupLabel}\n${groupLogs
-              .map((gl) => {
-                return formatLogText(gl);
-              })
-              .join('\n')}`;
-          } else if (Array.isArray(log.message.parts)) {
-            text = log.message.parts.map((p) => p.text || '').join('');
-          } else {
-            text = String(log.message);
-          }
-        } else {
-          text = String(log.message);
-        }
-      } catch (e) {
-        text = String(log.message);
-      }
-      return text;
-    };
-
-    const timestamp = (date) => {
-      return date.toLocaleTimeString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-    };
-
     const logTexts = logs.map((log) => {
-      const time = timestamp(log.timestamp);
+      const time = this.renderer.formatTime(log.timestamp);
       const type = log.type.toUpperCase();
-      const message = formatLogText(log);
+      const message = Renderer.formatLogTextForCopy(log);
       return `[${time}] ${type}: ${message}`;
     });
 
@@ -2033,6 +2368,10 @@ class ConsoleDock {
         line-height: 1.5;
         display: block;
         min-width: 0;
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
       }
 
       .fc-log-message.expanded {
@@ -2061,11 +2400,15 @@ class ConsoleDock {
 
 
       .fc-group-content-clickable {
-        user-select: none;
+        cursor: default;
       }
 
       .fc-group-content-clickable:hover {
         opacity: 0.8;
+      }
+
+      .fc-group-content-clickable .fc-log-message {
+        user-select: text;
       }
 
       .fc-group-toggle {
@@ -2117,11 +2460,15 @@ class ConsoleDock {
       }
 
       .fc-read-more-clickable {
-        user-select: none;
+        cursor: default;
       }
 
       .fc-read-more-clickable:hover {
         opacity: 0.8;
+      }
+
+      .fc-read-more-clickable .fc-log-message {
+        user-select: text;
       }
 
       .fc-read-more {
@@ -2175,6 +2522,73 @@ class ConsoleDock {
 
       .fc-console.dark-mode .fc-log-link:hover {
         color: #93c5fd;
+      }
+
+      .fc-context-menu {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        z-index: 10002;
+        min-width: 200px;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .fc-console.dark-mode .fc-context-menu {
+        background: rgba(40, 40, 40, 0.98);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+
+      .fc-context-menu-hidden {
+        display: none !important;
+      }
+
+      .fc-context-menu-item {
+        padding: 10px 14px;
+        background: transparent;
+        border: none;
+        color: #1a1a1a;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        transition: all 0.2s ease;
+        width: 100%;
+      }
+
+      .fc-console.dark-mode .fc-context-menu-item {
+        color: #e0e0e0;
+      }
+
+      .fc-context-menu-item:hover {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+      }
+
+      .fc-console.dark-mode .fc-context-menu-item:hover {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+      }
+
+      .fc-context-menu-item:active {
+        background: rgba(59, 130, 246, 0.2);
+      }
+
+      .fc-context-menu-separator {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.1);
+        margin: 4px 0;
+      }
+
+      .fc-console.dark-mode .fc-context-menu-separator {
+        background: rgba(255, 255, 255, 0.1);
       }
 
       .fc-resize-handle-vertical {
@@ -2476,7 +2890,6 @@ class DockManager {
             'warn',
             'error',
             'debug',
-            'group',
           ];
           if (this.console.isVisible) {
             this.console.renderConsoleLogs();
