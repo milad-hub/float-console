@@ -13,9 +13,10 @@ A floating console Chrome extension that captures logs, warnings, and errors for
 
 - **Floating Console Panel** - Draggable and resizable console that stays accessible
 - **Comprehensive Log Capture** - Automatically captures `console.log`, `console.warn`, `console.error`, `console.info`, `console.debug`, `console.table`, `console.group`, and `console.groupCollapsed`
-- **Advanced Filtering** - Filter logs by text, type, or timestamp
+- **Advanced Filtering** - Filter logs by text content or by log type (log, info, warn, error, debug, group)
+- **Log Type Filtering** - Select which log types to display using the Types dropdown button
 - **Pin Important Logs** - Pin logs to keep them visible while scrolling
-- **Copy Functionality** - Copy individual logs or all logs (filtered or unfiltered) to clipboard
+- **Copy Functionality** - Copy individual logs or all logs (respects both text and type filters) to clipboard
 - **Log Management** - Delete individual logs or clear all logs
 - **Grouped Logs** - Collapsible groups for organized log viewing
 - **Expandable Messages** - Expand/collapse long log messages with chevron controls
@@ -27,7 +28,7 @@ A floating console Chrome extension that captures logs, warnings, and errors for
   - Hover-to-show mode
   - Dark mode toggle
   - Custom font family and font size for logs
-- **Persistent Settings** - Remembers your preferences across sessions
+- **Persistent Settings** - Remembers your preferences (position, dark mode, font settings, log type selections) across sessions
 - **Privacy-Focused** - All data stays local, no external tracking
 - **Secure** - Built with security best practices including XSS prevention and CSP compliance
 
@@ -68,8 +69,9 @@ npm run build
 2. **Reposition**: Use the position buttons in settings or drag the floating button to any corner
 3. **Resize**: Drag the resize handles on the console panel edges
 4. **Clear Logs**: Click the "Clear" button in the console header
-5. **Copy Logs**: Click the "Copy" button to copy all logs (or filtered logs) to clipboard
-6. **Filter Logs**: Click the "Filter" button and type to filter logs by content, type, or time
+5. **Copy Logs**: Click the "Copy" button to copy all logs (respects both text and type filters) to clipboard
+6. **Filter by Type**: Click the "Types" button to select which log types (log, info, warn, error, debug, group) to display
+7. **Filter by Text**: Click the "Filter" button and type to filter logs by content
 
 ### Log Management
 
@@ -78,6 +80,14 @@ npm run build
 - **Copy Individual Logs**: Click the copy icon on any log entry
 - **Expand/Collapse**: Click on truncated messages or group headers to expand/collapse
 - **Group Navigation**: Use chevron icons to expand/collapse grouped logs
+
+### Log Type Filtering
+
+- **Select Log Types**: Click the "Types" button in the console header to open the log type dropdown
+- **Toggle Types**: Check/uncheck log types (Log, Info, Warning, Error, Debug, Group) to show or hide them
+- **Persistent Selection**: Your log type selections are saved and remembered across sessions
+- **Combined Filtering**: Log type filtering works together with text filtering - only logs matching both filters are displayed
+- **Copy Respects Filters**: When copying logs, only logs matching your selected types and text filter are copied
 
 ### Settings
 

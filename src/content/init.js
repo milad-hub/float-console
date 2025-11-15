@@ -139,6 +139,35 @@ class Renderer {
         </div>
         <div class="fc-header-actions">
           <button class="fc-copy" aria-label="Copy all logs" title="Copy all logs to clipboard">Copy</button>
+          <div class="fc-log-type-filter-wrapper">
+            <button class="fc-log-type-filter-btn" aria-label="Filter log types" title="Filter log types">Types</button>
+            <div class="fc-log-type-dropdown fc-dropdown-hidden">
+              <label class="fc-log-type-item">
+                <input type="checkbox" value="log" checked />
+                <span>Log</span>
+              </label>
+              <label class="fc-log-type-item">
+                <input type="checkbox" value="info" checked />
+                <span>Info</span>
+              </label>
+              <label class="fc-log-type-item">
+                <input type="checkbox" value="warn" checked />
+                <span>Warning</span>
+              </label>
+              <label class="fc-log-type-item">
+                <input type="checkbox" value="error" checked />
+                <span>Error</span>
+              </label>
+              <label class="fc-log-type-item">
+                <input type="checkbox" value="debug" checked />
+                <span>Debug</span>
+              </label>
+              <label class="fc-log-type-item">
+                <input type="checkbox" value="group" checked />
+                <span>Group</span>
+              </label>
+            </div>
+          </div>
           <button class="fc-filter" aria-label="Filter logs" title="Filter logs">Filter</button>
           <button class="fc-clear" aria-label="Clear logs" title="Clear logs">Clear</button>
           <button class="fc-close" aria-label="Close console" title="Close console">×</button>
@@ -753,6 +782,7 @@ class ConsoleDock {
     this.filterText = '';
     this.logFontFamily = "Consolas, 'Monaco', 'Courier New', monospace";
     this.logFontSize = 12;
+    this.enabledLogTypes = ['log', 'info', 'warn', 'error', 'debug', 'group'];
 
     this.logger = new Logger();
     this.renderer = new Renderer();
@@ -770,6 +800,7 @@ class ConsoleDock {
 
     this.darkModeLoaded = this.loadDarkMode();
     this.fontSettingsLoaded = this.loadFontSettings();
+    this.logTypesLoaded = this.loadLogTypes();
   }
 
   async loadDarkMode() {
@@ -805,6 +836,22 @@ class ConsoleDock {
     } catch (error) {
       console.warn('Failed to load font settings:', error);
       return { fontFamily: this.logFontFamily, fontSize: this.logFontSize };
+    }
+  }
+
+  async loadLogTypes() {
+    try {
+      const { logTypes } = await chrome.storage.sync.get(['logTypes']);
+      if (logTypes && Array.isArray(logTypes) && logTypes.length > 0) {
+        this.enabledLogTypes = logTypes;
+      }
+      if (this.container) {
+        this.initializeLogTypeCheckboxes();
+      }
+      return this.enabledLogTypes;
+    } catch (error) {
+      console.warn('Failed to load log types:', error);
+      return this.enabledLogTypes;
     }
   }
 
@@ -863,12 +910,14 @@ class ConsoleDock {
   async show() {
     await this.darkModeLoaded;
     await this.fontSettingsLoaded;
+    await this.logTypesLoaded;
     if (this.container) {
       this.container.style.display = 'flex';
       this.updateDarkMode();
       this.updateFontSettings();
+      this.initializeLogTypeCheckboxes();
     } else {
-      this.createConsole();
+      await this.createConsole();
     }
     this.isVisible = true;
     this.updateResizeHandles();
@@ -912,7 +961,8 @@ class ConsoleDock {
     this.isVisible = false;
   }
 
-  createConsole() {
+  async createConsole() {
+    await this.logTypesLoaded;
     this.container = document.createElement('div');
     this.container.className = `fc-console ${this.getPositionClass()} ${this.getHorizontalClass()}`;
     if (this.darkMode) {
@@ -922,6 +972,8 @@ class ConsoleDock {
 
     this.attachEventListeners();
     this.shadowRoot.appendChild(this.container);
+
+    this.initializeLogTypeCheckboxes();
 
     const existingStyle = this.shadowRoot.querySelector('style[data-console-styles]');
     if (existingStyle) {
@@ -960,6 +1012,51 @@ class ConsoleDock {
       e.stopPropagation();
       this.clearConsole();
     });
+
+    const logTypeFilterBtn = this.container.querySelector('.fc-log-type-filter-btn');
+    const logTypeDropdown = this.container.querySelector('.fc-log-type-dropdown');
+    const logTypeCheckboxes = this.container.querySelectorAll(
+      '.fc-log-type-item input[type="checkbox"]'
+    );
+
+    if (logTypeFilterBtn && logTypeDropdown) {
+      logTypeFilterBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = logTypeDropdown.classList.contains('fc-dropdown-hidden');
+        if (isHidden) {
+          logTypeDropdown.classList.remove('fc-dropdown-hidden');
+        } else {
+          logTypeDropdown.classList.add('fc-dropdown-hidden');
+        }
+      });
+
+      logTypeCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', async (e) => {
+          e.stopPropagation();
+          await this.updateEnabledLogTypes();
+          this.renderConsoleLogs();
+        });
+      });
+
+      logTypeDropdown.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+
+      document.addEventListener('click', (e) => {
+        const path = e.composedPath ? e.composedPath() : [e.target];
+        const isInsideDropdown = path.some(
+          (el) =>
+            el === logTypeFilterBtn ||
+            el === logTypeDropdown ||
+            (el.classList && el.classList.contains('fc-log-type-filter-wrapper'))
+        );
+        if (!isInsideDropdown && !logTypeDropdown.classList.contains('fc-dropdown-hidden')) {
+          logTypeDropdown.classList.add('fc-dropdown-hidden');
+        }
+      });
+
+      this.initializeLogTypeCheckboxes();
+    }
 
     const filterInput = this.container.querySelector('.fc-filter-input');
     const filterClear = this.container.querySelector('.fc-filter-clear');
@@ -1053,6 +1150,26 @@ class ConsoleDock {
     }
   }
 
+  initializeLogTypeCheckboxes() {
+    const checkboxes = this.container.querySelectorAll('.fc-log-type-item input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = this.enabledLogTypes.includes(checkbox.value);
+    });
+  }
+
+  async updateEnabledLogTypes() {
+    const checkboxes = this.container.querySelectorAll('.fc-log-type-item input[type="checkbox"]');
+    this.enabledLogTypes = Array.from(checkboxes)
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.value);
+
+    try {
+      await chrome.storage.sync.set({ logTypes: this.enabledLogTypes });
+    } catch (error) {
+      console.error('Float Console: Failed to save log types:', error);
+    }
+  }
+
   renderConsoleLogs() {
     if (!this.container) return;
 
@@ -1060,12 +1177,40 @@ class ConsoleDock {
     if (panel) {
       let logs = this.logger.getLogs();
 
+      // Apply log type filter first
+      logs = this.filterLogsByType(logs);
+
+      // Apply text filter if filter text exists
       if (this.filterText) {
         logs = this.filterLogs(logs);
       }
 
       this.renderer.renderLogs(panel, logs, this);
     }
+  }
+
+  filterLogsByType(logs) {
+    if (!this.enabledLogTypes || this.enabledLogTypes.length === 0) {
+      return logs;
+    }
+
+    const groupTypeEnabled = this.enabledLogTypes.includes('group');
+
+    return logs.filter((log) => {
+      if (log.isGroupStart) {
+        return groupTypeEnabled;
+      }
+
+      if (log.type === 'groupEnd') {
+        return groupTypeEnabled;
+      }
+
+      if ((log.groupDepth || 0) > 0 || log.inGroup) {
+        return groupTypeEnabled;
+      }
+
+      return this.enabledLogTypes.includes(log.type);
+    });
   }
 
   filterLogs(logs) {
@@ -1122,11 +1267,11 @@ class ConsoleDock {
 
   copyAllLogs() {
     let logs = this.logger.getLogs();
-
-    // Apply filter if filter text exists
+    logs = this.filterLogsByType(logs);
     if (this.filterText) {
       logs = this.filterLogs(logs);
     }
+
     if (logs.length === 0) {
       return;
     }
@@ -1387,6 +1532,11 @@ class ConsoleDock {
         gap: 8px;
       }
 
+      .fc-log-type-filter-wrapper {
+        position: relative;
+      }
+
+      .fc-log-type-filter-btn,
       .fc-copy,
       .fc-filter,
       .fc-clear,
@@ -1401,9 +1551,10 @@ class ConsoleDock {
         font-weight: 500;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
-        overflow: hidden;
+        overflow: visible;
       }
 
+      .fc-console.dark-mode .fc-log-type-filter-btn,
       .fc-console.dark-mode .fc-copy,
       .fc-console.dark-mode .fc-filter,
       .fc-console.dark-mode .fc-clear,
@@ -1412,37 +1563,8 @@ class ConsoleDock {
         color: #e0e0e0;
       }
 
-      .fc-copy::before,
-      .fc-filter::before,
-      .fc-clear::before,
-      .fc-close::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.1);
-        transform: translate(-50%, -50%);
-        transition: width 0.3s ease, height 0.3s ease;
-      }
 
-      .fc-console.dark-mode .fc-copy::before,
-      .fc-console.dark-mode .fc-filter::before,
-      .fc-console.dark-mode .fc-clear::before,
-      .fc-console.dark-mode .fc-close::before {
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      .fc-copy:hover::before,
-      .fc-filter:hover::before,
-      .fc-clear:hover::before,
-      .fc-close:hover::before {
-        width: 100px;
-        height: 100px;
-      }
-
+      .fc-log-type-filter-btn:hover,
       .fc-copy:hover,
       .fc-filter:hover,
       .fc-clear:hover,
@@ -1452,6 +1574,7 @@ class ConsoleDock {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
 
+      .fc-console.dark-mode .fc-log-type-filter-btn:hover,
       .fc-console.dark-mode .fc-copy:hover,
       .fc-console.dark-mode .fc-filter:hover,
       .fc-console.dark-mode .fc-clear:hover,
@@ -1460,11 +1583,83 @@ class ConsoleDock {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
 
+      .fc-log-type-filter-btn:active,
       .fc-copy:active,
       .fc-filter:active,
       .fc-clear:active,
       .fc-close:active {
         transform: scale(0.95);
+      }
+
+      .fc-log-type-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        padding: 8px;
+        min-width: 140px;
+        z-index: 10002;
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        pointer-events: auto;
+      }
+
+      .fc-log-type-dropdown.fc-dropdown-hidden {
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
+      }
+
+      .fc-console.dark-mode .fc-log-type-dropdown {
+        background: rgba(30, 30, 30, 0.95);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      }
+
+      .fc-log-type-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+        user-select: none;
+      }
+
+      .fc-log-type-item:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .fc-console.dark-mode .fc-log-type-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .fc-log-type-item input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #3b82f6;
+      }
+
+      .fc-console.dark-mode .fc-log-type-item input[type="checkbox"] {
+        accent-color: #60a5fa;
+      }
+
+      .fc-log-type-item span {
+        font-size: 13px;
+        color: #1a1a1a;
+        flex: 1;
+      }
+
+      .fc-console.dark-mode .fc-log-type-item span {
+        color: #e0e0e0;
       }
 
       .fc-filter-row {
@@ -1866,7 +2061,6 @@ class ConsoleDock {
 
 
       .fc-group-content-clickable {
-        cursor: pointer;
         user-select: none;
       }
 
@@ -1923,7 +2117,6 @@ class ConsoleDock {
       }
 
       .fc-read-more-clickable {
-        cursor: pointer;
         user-select: none;
       }
 
@@ -2275,6 +2468,21 @@ class DockManager {
           }
         }
         break;
+      case 'updateLogTypes':
+        if (this.console) {
+          this.console.enabledLogTypes = message.logTypes || [
+            'log',
+            'info',
+            'warn',
+            'error',
+            'debug',
+            'group',
+          ];
+          if (this.console.isVisible) {
+            this.console.renderConsoleLogs();
+          }
+        }
+        break;
     }
     sendResponse({ status: 'ok' });
     return true;
@@ -2490,6 +2698,9 @@ class DockManager {
                 'fc-clear',
                 'fc-close',
                 'fc-filter-clear',
+                'fc-log-type-filter-btn',
+                'fc-log-type-dropdown',
+                'fc-log-type-item',
               ];
               if (buttonClasses.some((cls) => element.classList.contains(cls))) {
                 return;
@@ -2699,6 +2910,7 @@ const SUPPORTED_ACTIONS = [
   'updateHoverSetting',
   'updateDarkMode',
   'updateFontSettings',
+  'updateLogTypes',
 ];
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Float Console - Test Page</title>
+  <title>Float Console - Comprehensive Test Page</title>
   <style>
     * {
       margin: 0;
@@ -20,7 +20,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
@@ -133,6 +133,11 @@
       color: white;
     }
 
+    .btn-special {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: white;
+    }
+
     button:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
@@ -151,6 +156,15 @@
       color: #92400e;
     }
 
+    .info-box {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      color: #1e40af;
+    }
+
     code {
       background: rgba(0, 0, 0, 0.05);
       padding: 2px 6px;
@@ -158,113 +172,220 @@
       font-family: 'Courier New', monospace;
       font-size: 0.9em;
     }
+
+    .test-description {
+      font-size: 0.9em;
+      color: #888;
+      font-style: italic;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🧪 Float Console Test Page</h1>
-    <p class="subtitle">Test all types of console logs and errors</p>
+    <h1>🧪 Float Console - Comprehensive Test Page</h1>
+    <p class="subtitle">Test all features of Float Console including logging, filtering, grouping, and more</p>
 
     <div class="section">
       <h2>📝 Basic Console Logs</h2>
-      <p>Test basic console logging methods</p>
+      <p>Test basic console logging methods with various data types</p>
       <div class="button-group">
         <button class="btn-info" onclick="testConsoleLog()">console.log()</button>
         <button class="btn-info" onclick="testConsoleInfo()">console.info()</button>
-        <button class="btn-success" onclick="testConsoleSuccess()">console.log (success)</button>
+        <button class="btn-success" onclick="testConsoleSuccess()">console.log (styled)</button>
         <button class="btn-debug" onclick="testConsoleDebug()">console.debug()</button>
+        <button class="btn-info" onclick="testConsoleMultipleArgs()">Multiple Arguments</button>
+        <button class="btn-info" onclick="testConsoleSpecialChars()">Special Characters</button>
       </div>
     </div>
 
     <div class="section">
       <h2>⚠️ Warnings</h2>
-      <p>Test console warning messages</p>
+      <p>Test console warning messages with different scenarios</p>
       <div class="button-group">
         <button class="btn-warn" onclick="testConsoleWarn()">console.warn()</button>
         <button class="btn-warn" onclick="testConsoleWarnMultiple()">Multiple Warnings</button>
         <button class="btn-warn" onclick="testConsoleWarnObject()">Warning with Object</button>
+        <button class="btn-warn" onclick="testConsoleWarnArray()">Warning with Array</button>
       </div>
     </div>
 
     <div class="section">
       <h2>❌ Errors</h2>
-      <p>Test console error messages and exceptions</p>
+      <p>Test console error messages, exceptions, and error handling</p>
       <div class="button-group">
         <button class="btn-error" onclick="testConsoleError()">console.error()</button>
         <button class="btn-error" onclick="testConsoleErrorStack()">Error with Stack</button>
         <button class="btn-error-throw" onclick="testThrowError()">Throw Error</button>
         <button class="btn-error-throw" onclick="testUnhandledRejection()">Unhandled Promise</button>
+        <button class="btn-error" onclick="testMultipleErrors()">Multiple Errors</button>
+        <button class="btn-error" onclick="testErrorWithContext()">Error with Context</button>
       </div>
     </div>
 
     <div class="section">
-      <h2>📊 Tables & Groups</h2>
-      <p>Test console table and group methods</p>
+      <h2>📊 Tables</h2>
+      <p>Test console.table() with various data structures</p>
       <div class="button-group">
-        <button class="btn-table" onclick="testConsoleTable()">console.table()</button>
+        <button class="btn-table" onclick="testConsoleTable()">Simple Table</button>
+        <button class="btn-table" onclick="testConsoleTableComplex()">Complex Table</button>
+        <button class="btn-table" onclick="testConsoleTableNested()">Nested Objects Table</button>
+        <button class="btn-table" onclick="testConsoleTableLarge()">Large Table</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📁 Groups</h2>
+      <p>Test console.group() and console.groupCollapsed() functionality</p>
+      <div class="button-group">
         <button class="btn-group" onclick="testConsoleGroup()">console.group()</button>
         <button class="btn-group" onclick="testConsoleGroupCollapsed()">console.groupCollapsed()</button>
+        <button class="btn-group" onclick="testNestedGroups()">Nested Groups</button>
+        <button class="btn-group" onclick="testMultipleGroups()">Multiple Groups</button>
+        <button class="btn-group" onclick="testGroupWithMixedLogs()">Group with Mixed Logs</button>
       </div>
     </div>
 
     <div class="section">
-      <h2>🔍 Objects & Data</h2>
+      <h2>🔍 Objects & Arrays</h2>
       <p>Test console logging with complex objects and data structures</p>
       <div class="button-group">
         <button class="btn-object" onclick="testConsoleObject()">Simple Object</button>
         <button class="btn-object" onclick="testConsoleNestedObject()">Nested Object</button>
         <button class="btn-object" onclick="testConsoleArray()">Array</button>
+        <button class="btn-object" onclick="testConsoleLargeArray()">Large Array</button>
         <button class="btn-object" onclick="testConsoleCircular()">Circular Reference</button>
+        <button class="btn-object" onclick="testConsoleMixedTypes()">Mixed Types</button>
       </div>
     </div>
 
     <div class="section">
-      <h2>🎯 Advanced Scenarios</h2>
-      <p>Test edge cases and advanced logging scenarios</p>
+      <h2>📏 Long Messages & Truncation</h2>
+      <p>Test expand/collapse functionality with long messages</p>
       <div class="button-group">
-        <button class="btn-promise" onclick="testPromiseRejection()">Promise Rejection</button>
-        <button class="btn-error" onclick="testResourceError()">Resource Error</button>
-        <button class="btn-debug" onclick="testMultipleLogs()">Multiple Logs</button>
-        <button class="btn-info" onclick="testLongMessage()">Long Message</button>
+        <button class="btn-special" onclick="testLongMessage()">Long Text Message</button>
+        <button class="btn-special" onclick="testLongObject()">Long Object</button>
+        <button class="btn-special" onclick="testLongArray()">Long Array</button>
+        <button class="btn-special" onclick="testMultiLineMessage()">Multi-line Message</button>
       </div>
     </div>
 
+    <div class="section">
+      <h2>🎯 Edge Cases</h2>
+      <p>Test edge cases and special scenarios</p>
+      <div class="button-group">
+        <button class="btn-special" onclick="testNullUndefined()">Null & Undefined</button>
+        <button class="btn-special" onclick="testEmptyValues()">Empty Values</button>
+        <button class="btn-special" onclick="testSpecialNumbers()">Special Numbers</button>
+        <button class="btn-special" onclick="testDates()">Date Objects</button>
+        <button class="btn-special" onclick="testFunctions()">Functions</button>
+        <button class="btn-special" onclick="testSymbols()">Symbols</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔄 Async Operations</h2>
+      <p>Test console logging with asynchronous operations</p>
+      <div class="button-group">
+        <button class="btn-promise" onclick="testPromiseRejection()">Promise Rejection</button>
+        <button class="btn-promise" onclick="testPromiseResolve()">Promise Resolve</button>
+        <button class="btn-promise" onclick="testAsyncFunction()">Async Function</button>
+        <button class="btn-promise" onclick="testSetTimeout()">setTimeout Logs</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>📈 Performance & Stress Tests</h2>
+      <p>Test console performance with many logs</p>
+      <div class="button-group">
+        <button class="btn-special" onclick="testMultipleLogs()">Multiple Logs (20)</button>
+        <button class="btn-special" onclick="testManyLogs()">Many Logs (100)</button>
+        <button class="btn-special" onclick="testRapidLogs()">Rapid Logs</button>
+        <button class="btn-special" onclick="testMixedRapidLogs()">Mixed Rapid Logs</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🌐 Real-World Scenarios</h2>
+      <p>Test realistic application scenarios</p>
+      <div class="button-group">
+        <button class="btn-success" onclick="testUserFlow()">User Flow Simulation</button>
+        <button class="btn-success" onclick="testAPICalls()">API Calls Simulation</button>
+        <button class="btn-success" onclick="testFormValidation()">Form Validation</button>
+        <button class="btn-success" onclick="testStateChanges()">State Changes</button>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>ℹ️ Test Features:</strong>
+      <ul style="margin-top: 10px; margin-left: 20px;">
+        <li>All log types (log, info, warn, error, debug, group)</li>
+        <li>Table formatting with original object display</li>
+        <li>Group collapsing/expanding</li>
+        <li>Long message truncation and expansion</li>
+        <li>Array formatting with total index</li>
+        <li>Object formatting with proper spacing</li>
+        <li>Filter functionality (use Filter button in console)</li>
+        <li>Log type filtering (use Types dropdown in console)</li>
+        <li>Copy functionality (use Copy button in console)</li>
+        <li>Pin functionality (use pin icon on logs)</li>
+      </ul>
+    </div>
+
     <div class="warning-box">
-      <strong>⚠️ Note:</strong> Some errors (like thrown errors and unhandled promise rejections) will appear in both the browser console and the Float Console.
+      <strong>⚠️ Note:</strong> Some errors (like thrown errors and unhandled promise rejections) will appear in both the browser console and the Float Console. Use the Types dropdown to filter specific log types and the Filter input to search logs.
     </div>
   </div>
 
   <script>
     function testConsoleLog() {
-      console.log('This is a simple log message');
-      console.log('Log with multiple', 'arguments', 123, true);
-      console.log('Log with emoji: 🚀');
+      console.log('Simple log message');
+      console.log('Log with number:', 42);
+      console.log('Log with boolean:', true);
+      console.log('Log with null:', null);
     }
 
     function testConsoleInfo() {
       console.info('Information message');
-      console.info('User logged in:', { userId: 12345, username: 'testuser' });
+      console.info('User logged in:', { userId: 12345, username: 'testuser', role: 'admin' });
+      console.info('System status:', 'operational');
     }
 
     function testConsoleSuccess() {
       console.log('%c✅ Success!', 'color: green; font-weight: bold; font-size: 16px;');
       console.log('Operation completed successfully');
+      console.log('Data saved:', { id: 1, name: 'Test Item' });
     }
 
     function testConsoleDebug() {
       console.debug('Debug message');
       console.debug('Debug info:', { step: 1, action: 'processing', data: [1, 2, 3] });
+      console.debug('Variable values:', { x: 10, y: 20, z: 30 });
+    }
+
+    function testConsoleMultipleArgs() {
+      console.log('Multiple', 'arguments', 'in', 'one', 'log');
+      console.log('String:', 'text', 'Number:', 123, 'Boolean:', true, 'Object:', { key: 'value' });
+    }
+
+    function testConsoleSpecialChars() {
+      console.log('Special chars: !@#$%^&*()');
+      console.log('Unicode: 🚀 🎉 ✅ ❌ ⚠️ 🔍');
+      console.log('Emoji: 😀 😎 🎨 🎭 🎪');
+      console.log('Math: ∑ ∫ √ ∞ ≈ ≠ ≤ ≥');
     }
 
     function testConsoleWarn() {
       console.warn('Warning: This is a warning message');
       console.warn('Deprecated function used');
+      console.warn('Low memory detected');
     }
 
     function testConsoleWarnMultiple() {
       console.warn('Warning 1: Low memory');
       console.warn('Warning 2: Slow network');
       console.warn('Warning 3: Cache expired');
+      console.warn('Warning 4: High CPU usage');
     }
 
     function testConsoleWarnObject() {
@@ -272,13 +393,23 @@
         code: 'WARN_001',
         message: 'Resource limit approaching',
         threshold: 80,
-        current: 75
+        current: 75,
+        timestamp: new Date()
       });
+    }
+
+    function testConsoleWarnArray() {
+      console.warn('Warning with array:', ['issue1', 'issue2', 'issue3']);
+      console.warn('Multiple warnings:', [
+        { type: 'memory', level: 'high' },
+        { type: 'cpu', level: 'medium' }
+      ]);
     }
 
     function testConsoleError() {
       console.error('Error: Something went wrong');
       console.error('Failed to load resource:', 'https://example.com/api/data');
+      console.error('Error code:', 404);
     }
 
     function testConsoleErrorStack() {
@@ -286,6 +417,8 @@
         throw new Error('This is a test error with stack trace');
       } catch (error) {
         console.error('Caught error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
       }
     }
 
@@ -297,20 +430,56 @@
       Promise.reject(new Error('Unhandled promise rejection'));
     }
 
+    function testMultipleErrors() {
+      console.error('Error 1: Network failure');
+      console.error('Error 2: Authentication failed');
+      console.error('Error 3: Validation error');
+    }
+
+    function testErrorWithContext() {
+      console.error('Error occurred in:', {
+        function: 'processData',
+        line: 42,
+        file: 'app.js',
+        context: { userId: 123, action: 'save' }
+      });
+    }
+
     function testConsoleTable() {
       const users = [
-        { id: 1, name: 'Alice', age: 30, role: 'Admin' },
-        { id: 2, name: 'Bob', age: 25, role: 'User' },
-        { id: 3, name: 'Charlie', age: 35, role: 'Moderator' }
+        { id: 1, name: 'Alice', age: 30, role: 'Admin', email: 'alice@example.com' },
+        { id: 2, name: 'Bob', age: 25, role: 'User', email: 'bob@example.com' },
+        { id: 3, name: 'Charlie', age: 35, role: 'Moderator', email: 'charlie@example.com' }
       ];
       console.table(users);
-      
+    }
+
+    function testConsoleTableComplex() {
       const data = {
-        'Column 1': ['A', 'B', 'C'],
-        'Column 2': [1, 2, 3],
-        'Column 3': [true, false, true]
+        'Column 1': ['A', 'B', 'C', 'D', 'E'],
+        'Column 2': [1, 2, 3, 4, 5],
+        'Column 3': [true, false, true, false, true],
+        'Column 4': ['X', 'Y', 'Z', 'W', 'V']
       };
       console.table(data);
+    }
+
+    function testConsoleTableNested() {
+      const nested = [
+        { id: 1, name: 'Item 1', metadata: { created: '2024-01-01', tags: ['a', 'b'] } },
+        { id: 2, name: 'Item 2', metadata: { created: '2024-01-02', tags: ['c', 'd'] } }
+      ];
+      console.table(nested);
+    }
+
+    function testConsoleTableLarge() {
+      const large = Array.from({ length: 50 }, (_, i) => ({
+        id: i + 1,
+        name: `Item ${i + 1}`,
+        value: Math.random() * 100,
+        active: i % 2 === 0
+      }));
+      console.table(large);
     }
 
     function testConsoleGroup() {
@@ -318,6 +487,7 @@
       console.log('Action 1: Login');
       console.log('Action 2: Load Dashboard');
       console.log('Action 3: Fetch Data');
+      console.log('Action 4: Render Components');
       console.groupEnd();
     }
 
@@ -326,6 +496,48 @@
       console.log('GET /api/users');
       console.log('GET /api/posts');
       console.log('POST /api/comments');
+      console.log('PUT /api/profile');
+      console.groupEnd();
+    }
+
+    function testNestedGroups() {
+      console.group('Outer Group');
+      console.log('Outer log 1');
+      console.group('Inner Group 1');
+      console.log('Inner log 1');
+      console.log('Inner log 2');
+      console.groupEnd();
+      console.group('Inner Group 2');
+      console.log('Inner log 3');
+      console.groupEnd();
+      console.log('Outer log 2');
+      console.groupEnd();
+    }
+
+    function testMultipleGroups() {
+      console.group('Group A');
+      console.log('A1');
+      console.log('A2');
+      console.groupEnd();
+
+      console.group('Group B');
+      console.log('B1');
+      console.log('B2');
+      console.groupEnd();
+
+      console.group('Group C');
+      console.log('C1');
+      console.log('C2');
+      console.groupEnd();
+    }
+
+    function testGroupWithMixedLogs() {
+      console.group('Mixed Log Types');
+      console.log('Regular log');
+      console.info('Info log');
+      console.warn('Warning log');
+      console.error('Error log');
+      console.debug('Debug log');
       console.groupEnd();
     }
 
@@ -335,7 +547,8 @@
         name: 'John Doe',
         email: 'john@example.com',
         active: true,
-        permissions: ['read', 'write']
+        permissions: ['read', 'write', 'delete'],
+        settings: { theme: 'dark', notifications: true }
       };
       console.log('User object:', user);
     }
@@ -349,16 +562,17 @@
                 data: 'Deep nested data',
                 numbers: [1, 2, 3, 4, 5],
                 nested: {
-                  final: 'This is very deep!'
+                  final: 'This is very deep!',
+                  array: [10, 20, 30]
                 }
               }
             }
           }
         },
         array: [
-          { item: 1, value: 'first' },
-          { item: 2, value: 'second' },
-          { item: 3, value: 'third' }
+          { item: 1, value: 'first', nested: { x: 1 } },
+          { item: 2, value: 'second', nested: { x: 2 } },
+          { item: 3, value: 'third', nested: { x: 3 } }
         ]
       };
       console.log('Nested object:', complex);
@@ -370,6 +584,18 @@
       
       const mixed = ['string', 123, true, null, undefined, { obj: 'value' }];
       console.log('Mixed array:', mixed);
+
+      const objects = [
+        { id: 1, name: 'Item 1' },
+        { id: 2, name: 'Item 2' },
+        { id: 3, name: 'Item 3' }
+      ];
+      console.log('Object array:', objects);
+    }
+
+    function testConsoleLargeArray() {
+      const large = Array.from({ length: 100 }, (_, i) => `Item ${i + 1}`);
+      console.log('Large array:', large);
     }
 
     function testConsoleCircular() {
@@ -377,6 +603,100 @@
       obj.self = obj;
       obj.nested = { parent: obj };
       console.log('Circular reference:', obj);
+    }
+
+    function testConsoleMixedTypes() {
+      console.log('Mixed types:', {
+        string: 'text',
+        number: 42,
+        boolean: true,
+        null: null,
+        undefined: undefined,
+        array: [1, 2, 3],
+        object: { key: 'value' },
+        date: new Date(),
+        regex: /test/g
+      });
+    }
+
+    function testLongMessage() {
+      const longMessage = 'This is a very long message that contains a lot of text. '.repeat(50);
+      console.log('Long message:', longMessage);
+    }
+
+    function testLongObject() {
+      const longObject = {
+        message: 'A'.repeat(500),
+        description: 'B'.repeat(1000),
+        data: Array(100).fill(0).map((_, i) => `Item ${i}`),
+        nested: {
+          veryLong: 'C'.repeat(800),
+          array: Array(50).fill({ x: 1, y: 2, z: 3 })
+        }
+      };
+      console.log('Long object:', longObject);
+    }
+
+    function testLongArray() {
+      const longArray = Array.from({ length: 200 }, (_, i) => ({
+        id: i,
+        name: `Item ${i}`,
+        description: `Description for item ${i}`.repeat(5),
+        tags: ['tag1', 'tag2', 'tag3', 'tag4', 'tag5']
+      }));
+      console.log('Long array:', longArray);
+    }
+
+    function testMultiLineMessage() {
+      console.log('Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10');
+      console.log('Multi-line object:', {
+        line1: 'First line',
+        line2: 'Second line',
+        line3: 'Third line',
+        line4: 'Fourth line',
+        line5: 'Fifth line'
+      });
+    }
+
+    function testNullUndefined() {
+      console.log('Null value:', null);
+      console.log('Undefined value:', undefined);
+      console.log('Both:', { null: null, undefined: undefined });
+      console.log('In array:', [null, undefined, 'value']);
+    }
+
+    function testEmptyValues() {
+      console.log('Empty string:', '');
+      console.log('Empty array:', []);
+      console.log('Empty object:', {});
+      console.log('All empty:', { str: '', arr: [], obj: {} });
+    }
+
+    function testSpecialNumbers() {
+      console.log('Infinity:', Infinity);
+      console.log('-Infinity:', -Infinity);
+      console.log('NaN:', NaN);
+      console.log('All special:', { inf: Infinity, negInf: -Infinity, nan: NaN });
+    }
+
+    function testDates() {
+      console.log('Current date:', new Date());
+      console.log('Specific date:', new Date('2024-01-01'));
+      console.log('Date array:', [new Date(), new Date('2023-06-15'), new Date('2022-12-25')]);
+    }
+
+    function testFunctions() {
+      function testFunc() { return 'test'; }
+      console.log('Function:', testFunc);
+      console.log('Arrow function:', () => 'arrow');
+      console.log('Function with name:', function namedFunc() { return 'named'; });
+    }
+
+    function testSymbols() {
+      const sym = Symbol('test');
+      console.log('Symbol:', sym);
+      console.log('Symbol description:', sym.description);
+      console.log('Symbol array:', [Symbol('a'), Symbol('b'), Symbol('c')]);
     }
 
     function testPromiseRejection() {
@@ -389,38 +709,113 @@
       });
     }
 
-    function testResourceError() {
-      const img = new Image();
-      img.onerror = function() {
-        console.error('Failed to load image:', img.src);
-      };
-      img.onload = function() {
-        console.log('Image loaded successfully');
-      };
-      img.src = 'https://invalid-url-that-does-not-exist.com/image.png';
+    function testPromiseResolve() {
+      Promise.resolve('Success!')
+        .then(value => {
+          console.log('Promise resolved:', value);
+          return value.toUpperCase();
+        })
+        .then(value => {
+          console.log('Transformed:', value);
+        });
+    }
+
+    function testAsyncFunction() {
+      async function asyncTest() {
+        console.log('Async function started');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log('Async function completed');
+        return 'Done';
+      }
+      asyncTest().then(result => console.log('Result:', result));
+    }
+
+    function testSetTimeout() {
+      console.log('Before timeout');
+      setTimeout(() => {
+        console.log('Inside timeout 1');
+      }, 100);
+      setTimeout(() => {
+        console.log('Inside timeout 2');
+      }, 200);
+      setTimeout(() => {
+        console.log('Inside timeout 3');
+      }, 300);
+      console.log('After timeout setup');
     }
 
     function testMultipleLogs() {
-      for (let i = 0; i < 10; i++) {
-        console.log(`Log message ${i + 1}`);
-      }
-      console.warn('Warning in between');
-      console.error('Error in between');
-      for (let i = 10; i < 20; i++) {
+      for (let i = 0; i < 20; i++) {
         console.log(`Log message ${i + 1}`);
       }
     }
 
-    function testLongMessage() {
-      const longMessage = 'This is a very long message that contains a lot of text. '.repeat(20);
-      console.log('Long message:', longMessage);
-      
-      const longObject = {
-        message: 'A'.repeat(500),
-        description: 'B'.repeat(1000),
-        data: Array(100).fill(0).map((_, i) => `Item ${i}`)
-      };
-      console.log('Long object:', longObject);
+    function testManyLogs() {
+      for (let i = 0; i < 100; i++) {
+        console.log(`Log ${i + 1}: This is log number ${i + 1}`);
+      }
+    }
+
+    function testRapidLogs() {
+      for (let i = 0; i < 50; i++) {
+        console.log(`Rapid log ${i + 1}`);
+      }
+    }
+
+    function testMixedRapidLogs() {
+      for (let i = 0; i < 30; i++) {
+        if (i % 3 === 0) console.log(`Log ${i}`);
+        else if (i % 3 === 1) console.warn(`Warning ${i}`);
+        else console.error(`Error ${i}`);
+      }
+    }
+
+    function testUserFlow() {
+      console.group('User Flow Simulation');
+      console.log('1. User opens application');
+      console.info('2. Loading user data...');
+      console.log('3. User data loaded:', { id: 1, name: 'John' });
+      console.group('User Actions');
+      console.log('4. User clicks button');
+      console.log('5. User submits form');
+      console.groupEnd();
+      console.warn('6. Warning: Form validation');
+      console.log('7. Form submitted successfully');
+      console.groupEnd();
+    }
+
+    function testAPICalls() {
+      console.group('API Calls Simulation');
+      console.log('GET /api/users');
+      console.info('Response:', { users: [{ id: 1, name: 'Alice' }] });
+      console.log('POST /api/posts');
+      console.info('Response:', { post: { id: 1, title: 'New Post' } });
+      console.error('GET /api/comments - Failed');
+      console.log('Retrying...');
+      console.info('GET /api/comments - Success');
+      console.groupEnd();
+    }
+
+    function testFormValidation() {
+      console.group('Form Validation');
+      console.log('Validating email...');
+      console.info('Email valid: test@example.com');
+      console.log('Validating password...');
+      console.warn('Password too short');
+      console.log('Validating username...');
+      console.info('Username available');
+      console.error('Validation failed: Password requirements not met');
+      console.groupEnd();
+    }
+
+    function testStateChanges() {
+      console.group('State Changes');
+      console.log('Initial state:', { count: 0 });
+      console.log('State update 1:', { count: 1 });
+      console.log('State update 2:', { count: 2 });
+      console.log('State update 3:', { count: 3 });
+      console.info('State changed:', { count: 3, previous: 2 });
+      console.groupEnd();
     }
 
     window.addEventListener('error', (event) => {
@@ -431,9 +826,12 @@
       console.error('Unhandled promise rejection:', event.reason);
     });
 
-    console.log('%c🎉 Float Console Test Page Loaded!', 'color: #667eea; font-size: 20px; font-weight: bold;');
-    console.log('Click the buttons above to test different console log types.');
+    console.log('%c🎉 Float Console Comprehensive Test Page Loaded!', 'color: #667eea; font-size: 20px; font-weight: bold;');
+    console.log('Click the buttons above to test different console log types and features.');
+    console.info('Use the Types dropdown to filter specific log types.');
+    console.info('Use the Filter input to search through logs.');
+    console.info('Use the Copy button to copy all logs to clipboard.');
+    console.info('Use pin icons to pin important logs.');
   </script>
 </body>
 </html>
-
