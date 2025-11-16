@@ -1,15 +1,15 @@
 # Float Console
 
-A simple floating console for Chrome that shows your logs without opening DevTools. Sometimes you just need to see what's being logged, you know?
+A simple floating console for Chromium-based browsers (Chrome, Edge, etc.) that shows your logs without opening DevTools. Sometimes you just need to see what's being logged, you know?
 
 ![Float Console](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-not%20ready-red)
 ![Release](https://img.shields.io/badge/release-not%20ready-red)
 
-> ⚠️ **Heads up**: This is still being worked on and hasn't been released yet. Things might break, features might change, and it's not in the Chrome Web Store. Use at your own risk!
+> ⚠️ **Heads up**: This is still being worked on and hasn't been released yet. Things might break, features might change, and it's not in any extension store. Use at your own risk!
 
-> ⚠️ **Important**: This is just a simple log viewer, okay? It's not Chrome DevTools. It won't debug your code, won't show you network requests, won't profile performance, none of that fancy stuff. It just shows console logs. If you need real debugging, use DevTools like everyone else.
+> ⚠️ **Important**: This is just a simple log viewer, okay? It's not DevTools. It won't debug your code, won't show you network requests, won't profile performance, none of that fancy stuff. It just shows console logs. If you need real debugging, use DevTools like everyone else.
 
 ## What it does
 
@@ -39,7 +39,7 @@ Just to be clear:
 - No debugging features - can't set breakpoints or step through code
 - Error details might be simpler than what DevTools shows
 
-If you need real debugging, use Chrome DevTools. This is just for quick log viewing.
+If you need real debugging, use your browser's DevTools. This is just for quick log viewing.
 
 ## Installation
 
@@ -64,8 +64,9 @@ npm install
 npm run build
 ```
 
-4. Load it in Chrome:
-   - Go to `chrome://extensions/`
+4. Load it in your browser:
+   - **Chrome**: Go to `chrome://extensions/`
+   - **Edge**: Go to `edge://extensions/`
    - Turn on "Developer mode" (top right)
    - Click "Load unpacked"
    - Pick the `dist` folder
@@ -121,6 +122,7 @@ We use ESLint and Prettier, so the code should be reasonably clean.
 - Messages are passed securely between content scripts and the extension
 - Logs are limited to 10,000 to keep memory usage reasonable
 - Everything stays local - no tracking, no external calls
+- Works with any Chromium-based browser (Chrome, Edge, Brave, etc.)
 
 ## License
 
