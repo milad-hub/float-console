@@ -42,16 +42,24 @@ async function handleToggleDock() {
     }
 
     try {
+      const response = await sendMessageToTab(tab.id, 'toggleDock');
+      if (response && response.status !== 'error') {
+        return;
+      }
+    } catch (error) {
+      console.log('Float Console: Content script not ready, injecting...');
+    }
+
+    try {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['content/init.js'],
       });
       await new Promise((resolve) => setTimeout(resolve, INJECT_DELAY));
+      await sendMessageToTab(tab.id, 'toggleDock');
     } catch (error) {
       console.error('Float Console: Failed to inject script:', error);
     }
-
-    await sendMessageToTab(tab.id, 'toggleDock');
   } catch (error) {
     console.error('Float Console: Failed to toggle dock:', error);
   }

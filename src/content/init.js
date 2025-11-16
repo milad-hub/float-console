@@ -3173,58 +3173,43 @@ class DockManager {
           return;
         }
 
-        const path = event.composedPath ? event.composedPath() : [event.target];
-        const consoleContainer = this.console.container;
-        const consoleShadowRoot = this.console.shadowRoot;
+        const target = event.target;
+        const shadowRoot = this.shadowRoot;
 
-        if (consoleContainer || consoleShadowRoot) {
-          for (const element of path) {
-            if (element === consoleContainer) {
+        if (!shadowRoot) {
+          return;
+        }
+
+        // Get the root node of the clicked element
+        let targetRoot;
+        try {
+          targetRoot = target.getRootNode ? target.getRootNode() : document;
+        } catch (e) {
+          targetRoot = document;
+        }
+
+        // If click is inside our shadow root, don't close
+        if (targetRoot === shadowRoot) {
+          return;
+        }
+
+        // Also check the composed path for any elements in our shadow root
+        const path = event.composedPath ? event.composedPath() : [target];
+        for (const element of path) {
+          if (element === document || element === window) {
+            continue;
+          }
+          try {
+            const elementRoot = element.getRootNode ? element.getRootNode() : document;
+            if (elementRoot === shadowRoot) {
               return;
             }
-
-            if (
-              consoleContainer &&
-              consoleContainer.contains &&
-              consoleContainer.contains(element)
-            ) {
-              return;
-            }
-
-            if (
-              consoleShadowRoot &&
-              consoleShadowRoot.contains &&
-              consoleShadowRoot.contains(element)
-            ) {
-              return;
-            }
-
-            if (element && element.classList) {
-              const buttonClasses = [
-                'fc-filter',
-                'fc-copy',
-                'fc-clear',
-                'fc-close',
-                'fc-filter-clear',
-                'fc-log-type-filter-btn',
-                'fc-log-type-dropdown',
-                'fc-log-type-item',
-              ];
-              if (buttonClasses.some((cls) => element.classList.contains(cls))) {
-                return;
-              }
-            }
+          } catch (e) {
+            // Ignore errors
           }
         }
 
-        if (this.button) {
-          for (const element of path) {
-            if (element === this.button || (this.shadowRoot && this.shadowRoot.contains(element))) {
-              return;
-            }
-          }
-        }
-
+        // Click was outside - close the console
         this.console.hide();
       };
 
