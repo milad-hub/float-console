@@ -3,6 +3,7 @@
   "name": "Float Console",
   "version": "1.0.0",
   "description": "A floating console that captures logs, warnings, and errors for quick debugging",
+  "homepage_url": "https://github.com/milad-hub/float-console",
   "action": {
     "default_icon": {
       "16": "icons/icon16.png",
