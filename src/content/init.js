@@ -59,7 +59,7 @@ class Logger {
         processedMessage = parsed;
       }
     } catch (e) {
-      console.error('Float Console: Failed to process log message:', e);
+      // Message is not JSON format, use as-is
     }
 
     const logEntry = {
@@ -133,11 +133,29 @@ class Logger {
 }
 
 class Renderer {
+  static extractGroupLabel(message) {
+    try {
+      if (typeof message === 'string') {
+        const parsed = JSON.parse(message);
+        if (parsed && Array.isArray(parsed.parts)) {
+          return parsed.parts.map((p) => p.text || '').join('');
+        }
+        return message;
+      }
+      if (typeof message === 'object' && Array.isArray(message.parts)) {
+        return message.parts.map((p) => p.text || '').join('');
+      }
+      return String(message);
+    } catch (e) {
+      return String(message);
+    }
+  }
+
   static formatLogText(logEntry) {
     let text = '';
     try {
       let message = logEntry.message;
-      
+
       if (typeof message === 'string') {
         try {
           const parsed = JSON.parse(message);
@@ -148,7 +166,7 @@ class Renderer {
           return message.trim();
         }
       }
-      
+
       if (typeof message === 'object' && message !== null) {
         if (message.groupLabel !== undefined) {
           const groupLabel = message.groupLabel;
@@ -228,8 +246,7 @@ class Renderer {
         const mouseUpPos = { x: e.clientX, y: e.clientY };
         const timeDiff = mouseUpTime - mouseDownTime;
         const distance = Math.sqrt(
-          Math.pow(mouseUpPos.x - mouseDownPos.x, 2) +
-          Math.pow(mouseUpPos.y - mouseDownPos.y, 2)
+          Math.pow(mouseUpPos.x - mouseDownPos.x, 2) + Math.pow(mouseUpPos.y - mouseDownPos.y, 2)
         );
 
         if (timeDiff < maxTime && distance < maxDistance) {
@@ -351,6 +368,54 @@ class Renderer {
     });
   }
 
+  processNestedGroup(logs, startIndex, groupDepth, processedIndices) {
+    const groupLog = logs[startIndex];
+    const groupLabel = Renderer.extractGroupLabel(groupLog.message);
+    const nestedGroupLogs = [];
+    const nestedGroupDepth = groupLog.groupDepth || 0;
+
+    processedIndices.add(startIndex);
+    let i = startIndex + 1;
+
+    while (i < logs.length) {
+      const nextLog = logs[i];
+      const nextLogDepth = nextLog.groupDepth || 0;
+
+      if (nextLog.type === 'groupEnd' && nextLogDepth <= nestedGroupDepth) {
+        processedIndices.add(i);
+        i++;
+        break;
+      }
+
+      if (nextLogDepth > nestedGroupDepth) {
+        if (nextLog.isGroupStart) {
+          const deeperGroup = this.processNestedGroup(logs, i, nestedGroupDepth, processedIndices);
+          nestedGroupLogs.push(deeperGroup.entry);
+          i = deeperGroup.nextIndex;
+          continue;
+        } else {
+          nestedGroupLogs.push(nextLog);
+          processedIndices.add(i);
+        }
+      }
+      i++;
+    }
+
+    return {
+      entry: {
+        type: 'group',
+        message: { groupLabel, groupLogs: nestedGroupLogs },
+        timestamp: groupLog.timestamp,
+        groupDepth: nestedGroupDepth,
+        collapsed: groupLog.collapsed || false,
+        isGroupStart: true,
+        pinned: groupLog.pinned || false,
+        id: groupLog.id || Date.now() + Math.random(),
+      },
+      nextIndex: i,
+    };
+  }
+
   renderLogs(panel, logs, consoleDock = null) {
     if (logs.length === 0) {
       panel.innerHTML = '<p class="fc-empty">No logs yet</p>';
@@ -360,62 +425,59 @@ class Renderer {
       return;
     }
 
-    const renderer = this;
     const processedLogs = [];
+    const processedIndices = new Set();
     let i = 0;
 
     while (i < logs.length) {
       const log = logs[i];
 
-      if (log.isGroupStart) {
-        const groupLogs = [];
-        const groupDepth = log.groupDepth || 0;
-        const groupTimestamp = log.timestamp;
-        const collapsed = log.collapsed || false;
+      // Skip logs that have already been processed as part of a parent group
+      if (processedIndices.has(i)) {
+        i++;
+        continue;
+      }
 
-        let groupLabel = '';
-        try {
-          if (typeof log.message === 'string') {
-            const parsed = JSON.parse(log.message);
-            if (parsed && Array.isArray(parsed.parts)) {
-              groupLabel = parsed.parts.map((p) => p.text || '').join('');
-            } else {
-              groupLabel = log.message;
-            }
-          } else if (typeof log.message === 'object' && Array.isArray(log.message.parts)) {
-            groupLabel = log.message.parts.map((p) => p.text || '').join('');
-          } else {
-            groupLabel = String(log.message);
-          }
-        } catch (e) {
-          groupLabel = String(log.message);
-        }
+      if (log.isGroupStart) {
+        const groupDepth = log.groupDepth || 0;
+        const groupLabel = Renderer.extractGroupLabel(log.message);
+        const groupLogs = [];
 
         i++;
 
         while (i < logs.length) {
           const nextLog = logs[i];
-          if (nextLog.type === 'groupEnd' && (nextLog.groupDepth || 0) <= groupDepth) {
+          const nextLogDepth = nextLog.groupDepth || 0;
+
+          if (nextLog.type === 'groupEnd' && nextLogDepth <= groupDepth) {
             i++;
             break;
           }
-          if ((nextLog.groupDepth || 0) > groupDepth) {
-            groupLogs.push(nextLog);
+
+          if (nextLogDepth > groupDepth) {
+            if (nextLog.isGroupStart) {
+              const nestedGroup = this.processNestedGroup(logs, i, groupDepth, processedIndices);
+              groupLogs.push(nestedGroup.entry);
+              i = nestedGroup.nextIndex;
+              continue;
+            } else {
+              groupLogs.push(nextLog);
+              processedIndices.add(i);
+            }
           }
           i++;
         }
 
-        const groupLogEntry = {
+        processedLogs.push({
           type: 'group',
           message: { groupLabel, groupLogs },
-          timestamp: groupTimestamp,
+          timestamp: log.timestamp,
           groupDepth: groupDepth,
-          collapsed: collapsed,
+          collapsed: log.collapsed || false,
           isGroupStart: true,
           pinned: log.pinned || false,
           id: log.id || Date.now() + Math.random(),
-        };
-        processedLogs.push(groupLogEntry);
+        });
       } else if (log.type !== 'groupEnd') {
         if (!log.id) {
           log.id = Date.now() + Math.random();
@@ -448,12 +510,36 @@ class Renderer {
           const groupLabel = log.message.groupLabel;
           const groupLogs = log.message.groupLogs || [];
 
-          const groupContent = groupLogs
-            .map((groupLog) => {
+          const renderGroupLog = (groupLog, depth = 0) => {
+            if (groupLog.isGroupStart && groupLog.message?.groupLabel !== undefined) {
+              const nestedGroupLabel = groupLog.message.groupLabel;
+              const nestedGroupLogs = groupLog.message.groupLogs || [];
+              const nestedCollapsed = groupLog.collapsed || false;
+              const nestedGroupContent = nestedGroupLogs
+                .map((nestedLog) => renderGroupLog(nestedLog, depth + 1))
+                .join('');
+
+              return `
+                <div class="fc-nested-group" style="padding-left: ${depth * 20}px; margin-top: 4px;">
+                  <div class="fc-group-content-clickable" style="cursor: pointer;">
+                    <span class="fc-group-toggle" style="display: inline-block; margin-right: 6px;">${nestedCollapsed ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
+                    <span style="display: inline;">${this.formatMessageWithStyles(nestedGroupLabel)}</span>
+                    <div class="fc-group-content" style="display: ${nestedCollapsed ? 'none' : 'block'}; margin-top: 6px; margin-left: 18px;">
+                      ${nestedGroupContent}
+                    </div>
+                  </div>
+                </div>
+              `;
+            } else {
+              const logType = groupLog.type || 'log';
               const logMessage = this.formatMessageWithStyles(groupLog.message);
-              return `<div style="padding-left: 20px; margin-top: 4px; color: inherit;">${logMessage}</div>`;
-            })
-            .join('');
+              return `<div class="fc-log-${logType}" style="padding-left: ${depth * 20}px; margin-top: 4px;">
+                <span class="fc-log-message">${logMessage}</span>
+              </div>`;
+            }
+          };
+
+          const groupContent = groupLogs.map((groupLog) => renderGroupLog(groupLog, 0)).join('');
 
           return `
         <div class="fc-log fc-log-group ${log.pinned ? 'fc-log-pinned' : ''}" 
@@ -471,13 +557,13 @@ class Renderer {
             </div>
           </div>
           <div class="fc-log-content fc-group-content-clickable">
-            <span class="fc-log-message" id="log-${index}">
+            <div class="fc-log-message fc-group-message" id="log-${index}" style="max-height: none; overflow: visible;">
               <span class="fc-group-toggle" style="display: inline-block; margin-right: 6px;">${collapsed ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
               <span style="display: inline;">${this.formatMessageWithStyles(groupLabel)}</span>
               <div class="fc-group-content" style="display: ${collapsed ? 'none' : 'block'}; margin-top: 6px;">
                 ${groupContent}
               </div>
-            </span>
+            </div>
           </div>
           <button class="fc-read-more" style="display: none;">${this.getChevronDownIcon()}</button>
         </div>
@@ -509,18 +595,18 @@ class Renderer {
 
     panel.querySelectorAll('.fc-group-content-clickable').forEach((contentArea) => {
       const toggle = contentArea.querySelector('.fc-group-toggle');
-      const logRow = contentArea.closest('.fc-log');
-      const groupContent = logRow?.querySelector('.fc-group-content');
+      const groupContent = contentArea.querySelector('.fc-group-content');
+      const logRow = contentArea.closest('.fc-log') || contentArea.closest('.fc-nested-group');
 
       if (toggle && groupContent) {
         const clickHandler = Renderer.createClickHandler((e) => {
           e.stopPropagation();
           const isCollapsed = groupContent.style.display === 'none';
           groupContent.style.display = isCollapsed ? 'block' : 'none';
-          toggle.innerHTML = isCollapsed
-            ? renderer.getChevronDownIcon()
-            : renderer.getChevronUpIcon();
-          logRow.classList.toggle('fc-group-collapsed', !isCollapsed);
+          toggle.innerHTML = isCollapsed ? this.getChevronDownIcon() : this.getChevronUpIcon();
+          if (logRow) {
+            logRow.classList.toggle('fc-group-collapsed', !isCollapsed);
+          }
         });
 
         contentArea.addEventListener('mousedown', clickHandler.onMouseDown);
@@ -563,7 +649,7 @@ class Renderer {
         if (logId && consoleDock) {
           const log = Renderer.findLogById(consoleDock.logger.getLogs(), logId);
           if (log) {
-            const time = renderer.formatTime(log.timestamp);
+            const time = this.formatTime(log.timestamp);
             const type = log.type.toUpperCase();
             const message = Renderer.formatLogTextForCopy(log);
             const logText = `[${time}] ${type}: ${message}`;
@@ -572,7 +658,7 @@ class Renderer {
               .writeText(logText)
               .then(() => {
                 const originalIcon = button.querySelector('svg')?.outerHTML || '';
-                button.innerHTML = renderer.getCheckIcon();
+                button.innerHTML = this.getCheckIcon();
                 setTimeout(() => {
                   if (originalIcon) {
                     button.innerHTML = originalIcon;
@@ -594,7 +680,7 @@ class Renderer {
 
       if (message && message.scrollHeight > message.clientHeight) {
         button.style.display = 'flex';
-        button.innerHTML = renderer.getChevronDownIcon();
+        button.innerHTML = this.getChevronDownIcon();
         logRow.style.paddingBottom = '2px';
 
         const toggleExpand = (e) => {
@@ -603,8 +689,8 @@ class Renderer {
           e.stopPropagation();
           message.classList.toggle('expanded');
           button.innerHTML = message.classList.contains('expanded')
-            ? renderer.getChevronUpIcon()
-            : renderer.getChevronDownIcon();
+            ? this.getChevronUpIcon()
+            : this.getChevronDownIcon();
         };
 
         const clickHandler = Renderer.createClickHandler(toggleExpand);
@@ -662,7 +748,7 @@ class Renderer {
         const excludeFileBtn = contextMenu.querySelector('[data-action="exclude-file"]');
 
         const log = logId ? Renderer.findLogById(consoleDock.logger.getLogs(), logId) : null;
-        
+
         if (excludeMessageBtn) {
           excludeMessageBtn.style.display = logId ? 'block' : 'none';
         }
@@ -1531,10 +1617,14 @@ class ConsoleDock {
             return regex.test(messageText);
           }
           const normalizedPattern = pattern.toLowerCase().trim();
-          return normalizedMessage.includes(normalizedPattern) || normalizedMessage === normalizedPattern;
+          return (
+            normalizedMessage.includes(normalizedPattern) || normalizedMessage === normalizedPattern
+          );
         } catch (e) {
           const normalizedPattern = pattern.toLowerCase().trim();
-          return normalizedMessage.includes(normalizedPattern) || normalizedMessage === normalizedPattern;
+          return (
+            normalizedMessage.includes(normalizedPattern) || normalizedMessage === normalizedPattern
+          );
         }
       });
     });
@@ -2376,6 +2466,11 @@ class ConsoleDock {
 
       .fc-log-message.expanded {
         max-height: none;
+      }
+
+      .fc-log-message.fc-group-message {
+        max-height: none;
+        overflow: visible;
       }
 
       .fc-table-pre {

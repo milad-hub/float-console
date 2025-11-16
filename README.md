@@ -1,42 +1,51 @@
 # Float Console
 
-A floating console Chrome extension that captures logs, warnings, and errors for quick debugging without opening DevTools.
+A simple floating console for Chrome that shows your logs without opening DevTools. Sometimes you just need to see what's being logged, you know?
 
 ![Float Console](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-not%20ready-red)
 ![Release](https://img.shields.io/badge/release-not%20ready-red)
 
-> ⚠️ **Note**: This project is currently under active development and **has not been released yet**. Features may change, bugs may exist, and the extension is not available in the Chrome Web Store. Use at your own risk and feel free to report any issues!
+> ⚠️ **Heads up**: This is still being worked on and hasn't been released yet. Things might break, features might change, and it's not in the Chrome Web Store. Use at your own risk!
 
-## Features
+> ⚠️ **Important**: This is just a simple log viewer, okay? It's not Chrome DevTools. It won't debug your code, won't show you network requests, won't profile performance, none of that fancy stuff. It just shows console logs. If you need real debugging, use DevTools like everyone else.
 
-- **Floating Console Panel** - Draggable and resizable console that stays accessible
-- **Comprehensive Log Capture** - Automatically captures `console.log`, `console.warn`, `console.error`, `console.info`, `console.debug`, `console.table`, `console.group`, and `console.groupCollapsed`
-- **Advanced Filtering** - Filter logs by text content or by log type (log, info, warn, error, debug, group)
-- **Log Type Filtering** - Select which log types to display using the Types dropdown button
-- **Pin Important Logs** - Pin logs to keep them visible while scrolling
-- **Copy Functionality** - Copy individual logs or all logs (respects both text and type filters) to clipboard
-- **Log Management** - Delete individual logs or clear all logs
-- **Grouped Logs** - Collapsible groups for organized log viewing
-- **Expandable Messages** - Expand/collapse long log messages with chevron controls
-- **Lightweight & Performant** - Optimized with debouncing, memory management, and efficient rendering
-- **Modern UI** - Clean design with dark/light theme support
-- **Keyboard Shortcuts** - Customizable keyboard shortcut to toggle the console (can be configured in Chrome's extension shortcuts settings)
-- **Customizable Settings**:
-  - Position control (top-left, top-right, bottom-left, bottom-right)
-  - Hover-to-show mode
-  - Dark mode toggle
-  - Custom font family and font size for logs
-- **Persistent Settings** - Remembers your preferences (position, dark mode, font settings, log type selections) across sessions
-- **Privacy-Focused** - All data stays local, no external tracking
-- **Secure** - Built with security best practices including XSS prevention and CSP compliance
+## What it does
 
-## 🚀 Installation
+Basically, it's a floating window that shows your `console.log`, `console.warn`, `console.error`, and other console stuff. That's it. Nothing fancy.
 
-### From Source
+Here's what you can do:
 
-1. Clone this repository:
+- **See your logs** - All the console methods you're used to (log, warn, error, info, debug, table, group, etc.)
+- **Filter stuff** - Search through logs or filter by type
+- **Pin logs** - Keep important ones at the top
+- **Copy logs** - Copy individual logs or everything
+- **Groups** - Expand/collapse grouped logs
+- **Long messages** - Expand messages that are too long
+- **Move it around** - Drag it wherever you want
+- **Resize it** - Make it bigger or smaller
+- **Dark mode** - Because dark mode is better
+- **Custom fonts** - Change the font if you want
+- **Keyboard shortcut** - Set your own shortcut to toggle it
+
+## What it doesn't do
+
+Just to be clear:
+
+- It's not DevTools. Don't expect breakpoints, network inspection, or any of that.
+- Log formatting might look slightly different than DevTools (we tried, but it's hard to match perfectly)
+- Objects are shown as text, not interactive inspectors
+- No debugging features - can't set breakpoints or step through code
+- Error details might be simpler than what DevTools shows
+
+If you need real debugging, use Chrome DevTools. This is just for quick log viewing.
+
+## Installation
+
+### Build it yourself
+
+1. Clone the repo:
 
 ```bash
 git clone https://github.com/milad-hub/float-console.git
@@ -49,131 +58,78 @@ cd float-console
 npm install
 ```
 
-3. Build the extension:
+3. Build it:
 
 ```bash
 npm run build
 ```
 
-4. Load in Chrome:
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" (top right)
+4. Load it in Chrome:
+   - Go to `chrome://extensions/`
+   - Turn on "Developer mode" (top right)
    - Click "Load unpacked"
-   - Select the `dist` folder from this project
+   - Pick the `dist` folder
 
-## 📖 Usage
+## How to use it
 
-### Basic Operations
+It's pretty straightforward. Click the floating button (or use your keyboard shortcut) to show/hide the console.
 
-1. **Toggle Console**: Click the floating button or use your configured keyboard shortcut. You can set or change the shortcut in Chrome's extension shortcuts settings (`chrome://extensions/shortcuts`)
-2. **Reposition**: Use the position buttons in settings or drag the floating button to any corner
-3. **Resize**: Drag the resize handles on the console panel edges
-4. **Clear Logs**: Click the "Clear" button in the console header
-5. **Copy Logs**: Click the "Copy" button to copy all logs (respects both text and type filters) to clipboard
-6. **Filter by Type**: Click the "Types" button to select which log types (log, info, warn, error, debug, group) to display
-7. **Filter by Text**: Click the "Filter" button and type to filter logs by content
+- **Move it**: Drag the floating button around
+- **Resize**: Drag the edges of the console window
+- **Filter**: Type in the filter box or use the Types dropdown
+- **Pin logs**: Click the pin icon on any log
+- **Delete logs**: Click the X icon
+- **Copy**: Click the copy icon (or use the Copy button for all logs)
+- **Expand groups**: Click the chevron to expand/collapse groups
+- **Expand long messages**: Click the chevron on truncated messages
 
-### Log Management
+The settings are in the extension popup (click the extension icon). You can change the position, enable dark mode, adjust fonts, etc.
 
-- **Pin Logs**: Click the pin icon on any log entry to pin it to the top
-- **Delete Logs**: Click the delete icon on any log entry to remove it
-- **Copy Individual Logs**: Click the copy icon on any log entry
-- **Expand/Collapse**: Click on truncated messages or group headers to expand/collapse
-- **Group Navigation**: Use chevron icons to expand/collapse grouped logs
+## Development
 
-### Log Type Filtering
-
-- **Select Log Types**: Click the "Types" button in the console header to open the log type dropdown
-- **Toggle Types**: Check/uncheck log types (Log, Info, Warning, Error, Debug, Group) to show or hide them
-- **Persistent Selection**: Your log type selections are saved and remembered across sessions
-- **Combined Filtering**: Log type filtering works together with text filtering - only logs matching both filters are displayed
-- **Copy Respects Filters**: When copying logs, only logs matching your selected types and text filter are copied
-
-### Settings
-
-Click the extension icon to access:
-
-- **Position**: Choose from 4 corner positions
-- **Hover to Show**: Enable hover mode to show console on button hover
-- **Dark Mode**: Toggle between light and dark themes
-- **Font Settings**: Customize log font family and size
-
-## 🛠️ Development
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm or yarn
-
-### Setup
+If you want to hack on this:
 
 ```bash
-# Install dependencies
+# Install stuff
 npm install
 
-# Development build with watch mode
+# Watch mode for development
 npm run dev
 
-# Production build
+# Build for production
 npm run build
 
-# Clean build directory
+# Clean up
 npm run clean
 
-# Lint code
+# Lint
 npm run lint
 
-# Fix linting issues
+# Fix linting
 npm run lint:fix
 
 # Format code
 npm run format
-
-# Check code formatting
-npm run format:check
 ```
 
-### Code Quality
+We use ESLint and Prettier, so the code should be reasonably clean.
 
-The project uses:
+## How it works
 
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **Webpack** for bundling and optimization
+- Content scripts intercept console calls and send them to the extension
+- Uses Shadow DOM so it doesn't mess with page styles
+- Messages are passed securely between content scripts and the extension
+- Logs are limited to 10,000 to keep memory usage reasonable
+- Everything stays local - no tracking, no external calls
 
-## 🔧 Technical Details
+## License
 
-### Architecture
+MIT - do whatever you want with it.
 
-- **Content Scripts**: Intercept console methods and inject logging functionality
-- **Shadow DOM**: Isolated styling to prevent conflicts with page styles
-- **Message Passing**: Secure communication between content scripts and extension
-- **Memory Management**: Automatic log cleanup to prevent memory issues (10,000 log limit)
+## Issues
 
-### Security Features
-
-- XSS prevention through HTML escaping
-- Content Security Policy (CSP) compliance
-- Input sanitization
-- Message origin validation
-- Safe DOM manipulation
-
-### Performance Optimizations
-
-- Debounced filter input (300ms)
-- Efficient log rendering
-- Memory limit enforcement
-- Optimized event handlers
-- Tree shaking and code minification
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
-## 📧 Support
-
-Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/milad-hub/float-console/issues).
+Found a bug? Want a feature? Open an issue on GitHub: https://github.com/milad-hub/float-console/issues
 
 ---
 
-Made with ❤️ for developers who want quick debugging without the DevTools hassle.
+Made for developers who just want to see their logs without the DevTools overhead.

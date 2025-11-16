@@ -30,7 +30,7 @@
       if (obj === undefined) return 'undefined';
       if (typeof obj === 'function') return `[Function: ${obj.name || 'anonymous'}]`;
       if (typeof obj === 'symbol') return obj.toString();
-      if (obj instanceof Date) return obj.toISOString();
+      if (obj instanceof Date) return obj.toString();
       if (obj instanceof RegExp) return obj.toString();
       if (obj instanceof Error) {
         const errorObj = {
@@ -54,6 +54,11 @@
           }
         });
         return '{' + pairs.join(', ') + (Object.keys(obj).length > 50 ? '...' : '') + '}';
+      }
+      if (typeof obj === 'number') {
+        if (obj === Infinity) return 'Infinity';
+        if (obj === -Infinity) return '-Infinity';
+        if (isNaN(obj)) return 'NaN';
       }
       return JSON.stringify(obj);
     } catch (e) {
@@ -138,7 +143,13 @@
         const arg = args[i];
         let textToAdd = '';
 
-        if (typeof arg === 'object' && arg !== null) {
+        if (arg instanceof Error) {
+          if (arg.stack) {
+            textToAdd = `${arg.name}: ${arg.message}\n${arg.stack}`;
+          } else {
+            textToAdd = `${arg.name}: ${arg.message}`;
+          }
+        } else if (typeof arg === 'object' && arg !== null) {
           textToAdd = safeStringify(arg);
         } else if (typeof arg === 'string') {
           const isStyleString =
@@ -167,7 +178,12 @@
           const startsWithBraceOrBracket =
             textToAdd.trim().startsWith('{') || textToAdd.trim().startsWith('[');
           const startsWithArrayCount = textToAdd.trim().match(/^\(\d+\)/);
+          const lastEndsWithWhitespace = /\s$/.test(lastText);
+          const newStartsWithWhitespace = /^\s/.test(textToAdd);
+
           if (lastText.trim().endsWith(':') && (startsWithBraceOrBracket || startsWithArrayCount)) {
+            parts.push({ text: ' ' + textToAdd, style: null });
+          } else if (!lastEndsWithWhitespace && !newStartsWithWhitespace) {
             parts.push({ text: ' ' + textToAdd, style: null });
           } else {
             parts.push({ text: textToAdd, style: null });
@@ -185,7 +201,13 @@
         const arg = args[i];
         let textToAdd = '';
 
-        if (typeof arg === 'object' && arg !== null) {
+        if (arg instanceof Error) {
+          if (arg.stack) {
+            textToAdd = `${arg.name}: ${arg.message}\n${arg.stack}`;
+          } else {
+            textToAdd = `${arg.name}: ${arg.message}`;
+          }
+        } else if (typeof arg === 'object' && arg !== null) {
           textToAdd = safeStringify(arg);
         } else {
           textToAdd = String(arg);
@@ -197,7 +219,12 @@
           const startsWithBraceOrBracket =
             textToAdd.trim().startsWith('{') || textToAdd.trim().startsWith('[');
           const startsWithArrayCount = textToAdd.trim().match(/^\(\d+\)/);
+          const lastEndsWithWhitespace = /\s$/.test(lastText);
+          const newStartsWithWhitespace = /^\s/.test(textToAdd);
+
           if (lastText.trim().endsWith(':') && (startsWithBraceOrBracket || startsWithArrayCount)) {
+            parts.push({ text: ' ' + textToAdd, style: null });
+          } else if (!lastEndsWithWhitespace && !newStartsWithWhitespace) {
             parts.push({ text: ' ' + textToAdd, style: null });
           } else {
             parts.push({ text: textToAdd, style: null });
@@ -217,13 +244,15 @@
       if (stack) {
         const lines = stack.split('\n');
         if (lines.length > 2) {
-          const match = lines[2].match(/\((.+):(\d+):(\d+)\)/) || lines[2].match(/at (.+):(\d+):(\d+)/);
+          const match =
+            lines[2].match(/\((.+):(\d+):(\d+)\)/) || lines[2].match(/at (.+):(\d+):(\d+)/);
           if (match && match[1]) {
             return match[1];
           }
         }
       }
     } catch (e) {
+      // Stack trace parsing failed, return null
     }
     return null;
   }
@@ -298,11 +327,19 @@
       if (Array.isArray(data) && data.length > 0) {
         const firstItem = data[0];
         if (typeof firstItem === 'object' && firstItem !== null) {
-          const headers = Object.keys(firstItem);
-          tableMessage = formatTableAsText(data, headers);
+          const objectKeys = Object.keys(firstItem);
+          const headers = ['(index)', ...objectKeys];
+          const rows = data.map((item, idx) => {
+            const row = { '(index)': idx };
+            objectKeys.forEach((key) => {
+              row[key] = item[key];
+            });
+            return row;
+          });
+          tableMessage = formatTableAsText(rows, headers);
         } else {
           const headers = ['(index)', 'value'];
-          const rows = data.map((item, idx) => ({ index: idx, value: item }));
+          const rows = data.map((item, idx) => ({ '(index)': idx, value: item }));
           tableMessage = formatTableAsText(rows, headers);
         }
       } else if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
@@ -311,12 +348,40 @@
 
         if (isArrayLike) {
           const headers = ['(index)', 'value'];
-          const rows = keys.map((key) => ({ index: key, value: data[key] }));
+          const rows = keys.map((key) => ({ '(index)': key, value: data[key] }));
           tableMessage = formatTableAsText(rows, headers);
         } else {
-          const headers = ['(index)', 'key', 'value'];
-          const rows = keys.map((key, idx) => ({ index: idx, key: key, value: data[key] }));
-          tableMessage = formatTableAsText(rows, headers);
+          const allValuesAreArrays =
+            keys.length > 0 && keys.every((key) => Array.isArray(data[key]));
+
+          if (allValuesAreArrays) {
+            const lengths = keys.map((key) => data[key].length);
+            const maxLength = lengths.length > 0 ? Math.max(...lengths) : 0;
+
+            if (maxLength > 0) {
+              const headers = [
+                '(index)',
+                ...Array.from({ length: maxLength }, (_, i) => String(i)),
+              ];
+              const rows = keys.map((key) => {
+                const row = { '(index)': key };
+                const arr = data[key];
+                for (let i = 0; i < maxLength; i++) {
+                  row[String(i)] = i < arr.length ? arr[i] : '';
+                }
+                return row;
+              });
+              tableMessage = formatTableAsText(rows, headers);
+            } else {
+              const headers = ['(index)', 'key', 'value'];
+              const rows = keys.map((key, idx) => ({ '(index)': idx, key: key, value: data[key] }));
+              tableMessage = formatTableAsText(rows, headers);
+            }
+          } else {
+            const headers = ['(index)', 'key', 'value'];
+            const rows = keys.map((key, idx) => ({ '(index)': idx, key: key, value: data[key] }));
+            tableMessage = formatTableAsText(rows, headers);
+          }
         }
       } else {
         tableMessage = formatMessage(args);
@@ -338,11 +403,19 @@
 
     const maxRows = Math.min(rows.length, 100);
 
+    const formatCellValue = (value) => {
+      if (value === null) return 'null';
+      if (value === undefined) return 'undefined';
+      if (typeof value === 'object' && !Array.isArray(value)) return '{...}';
+      if (Array.isArray(value)) return `(${value.length}) [...]`;
+      return String(value);
+    };
+
     const columnWidths = headers.map((header) => {
       let maxWidth = header.length;
       for (let i = 0; i < maxRows; i++) {
         const row = rows[i];
-        const value = row && row[header] !== undefined ? String(row[header]) : '';
+        const value = row && row[header] !== undefined ? formatCellValue(row[header]) : '';
         maxWidth = Math.max(maxWidth, value.length);
       }
       return Math.min(Math.max(maxWidth, 8), 50);
@@ -370,7 +443,8 @@
         '│ ' +
         headers
           .map((header, j) => {
-            const value = row && row[header] !== undefined ? String(row[header]) : '';
+            const rawValue = row && row[header] !== undefined ? row[header] : '';
+            const value = formatCellValue(rawValue);
             const truncated =
               value.length > columnWidths[j]
                 ? value.substring(0, columnWidths[j] - 3) + '...'
