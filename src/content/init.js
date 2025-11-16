@@ -10,7 +10,30 @@ class Logger {
 
     const script = document.createElement('script');
     script.src = chrome.runtime.getURL('content/logger.js');
-    (document.head || document.documentElement).appendChild(script);
+
+    script.onerror = () => {
+      console.error('Float Console: Failed to load logger script');
+    };
+
+    if (document.head) {
+      document.head.appendChild(script);
+    } else if (document.documentElement) {
+      document.documentElement.appendChild(script);
+    } else {
+      // Wait for DOM to be ready
+      const checkDOM = () => {
+        if (document.head) {
+          document.head.appendChild(script);
+        } else if (document.documentElement) {
+          document.documentElement.appendChild(script);
+        } else {
+          setTimeout(checkDOM, 10);
+        }
+      };
+      checkDOM();
+      return;
+    }
+
     script.onload = () => script.remove();
   }
 
@@ -28,7 +51,14 @@ class Logger {
       const validTypes = ['log', 'warn', 'error', 'info', 'debug', 'group', 'groupEnd'];
       if (!validTypes.includes(type)) return;
 
-      if (typeof timestamp !== 'number' || timestamp < 0 || timestamp > Date.now() + 1000) {
+      // More lenient timestamp validation - allow logs from the past hour
+      if (typeof timestamp !== 'number' || timestamp < 0) {
+        return;
+      }
+      const now = Date.now();
+      const oneHourAgo = now - 3600000;
+      const oneHourFromNow = now + 3600000;
+      if (timestamp < oneHourAgo || timestamp > oneHourFromNow) {
         return;
       }
 
@@ -1079,7 +1109,7 @@ class ResizeHandler {
 }
 
 class ConsoleDock {
-  constructor(position, shadowRoot, logCountBadge) {
+  constructor(position, shadowRoot, logCountBadge, logger = null) {
     this.position = position;
     this.shadowRoot = shadowRoot;
     this.logCountBadge = logCountBadge;
@@ -1093,18 +1123,23 @@ class ConsoleDock {
     this.messageFilters = [];
     this.fileFilters = [];
 
-    this.logger = new Logger();
+    // Reuse logger from DockManager if provided, otherwise create new one
+    if (logger) {
+      this.logger = logger;
+    } else {
+      this.logger = new Logger();
+      this.logger.injectLogger();
+      this.logger.processLogs();
+    }
     this.renderer = new Renderer();
     this.resizeHandler = new ResizeHandler(position);
 
-    this.logger.injectLogger();
-    this.logger.processLogs();
-
     this.logger.onLog(() => {
+      // Always update badge, but only render if console is visible
+      this.updateLogCountBadge();
       if (this.isVisible && this.activeTab === 'console') {
         this.renderConsoleLogs();
       }
-      this.updateLogCountBadge();
     });
 
     this.darkModeLoaded = this.loadDarkMode();
@@ -1514,7 +1549,13 @@ class ConsoleDock {
 
     const panel = this.container.querySelector('[data-panel="console"]');
     if (panel) {
+      // Get all logs from the logger
       let logs = this.logger.getLogs();
+
+      // Ensure we have logs array
+      if (!Array.isArray(logs)) {
+        logs = [];
+      }
 
       // Apply log type filter first
       logs = this.filterLogsByType(logs);
@@ -2913,14 +2954,41 @@ class DockManager {
     this.button = null;
     this.draggable = null;
     this.console = null;
+    this.logger = null;
 
     this.init();
   }
 
   async init() {
     await this.loadState();
-    if (this.isVisible) {
-      this.createButton();
+
+    // Initialize logger early to capture logs even if button isn't visible
+    this.initializeLogger();
+
+    // Ensure DOM is ready before creating button
+    const ensureDOMReady = () => {
+      if (document.body) {
+        if (this.isVisible) {
+          this.createButton();
+        }
+      } else {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', ensureDOMReady, { once: true });
+        } else {
+          setTimeout(ensureDOMReady, 10);
+        }
+      }
+    };
+
+    ensureDOMReady();
+  }
+
+  initializeLogger() {
+    // Create a minimal logger instance to capture logs early
+    if (!this.logger) {
+      this.logger = new Logger();
+      this.logger.injectLogger();
+      this.logger.processLogs();
     }
   }
 
@@ -3049,16 +3117,50 @@ class DockManager {
   ensureShadowRoot() {
     if (this.shadowRoot) return;
 
-    const host = document.createElement('div');
-    host.id = 'fc-dock-shadow-host';
-    document.body.appendChild(host);
-    this.shadowRoot = host.attachShadow({ mode: 'open' });
+    // Check if shadow host already exists (e.g., from previous page load)
+    let host = document.getElementById('fc-dock-shadow-host');
+
+    if (!host) {
+      // Wait for body to be available
+      if (!document.body) {
+        // If body isn't ready, wait for it
+        const checkBody = () => {
+          if (document.body) {
+            host = document.createElement('div');
+            host.id = 'fc-dock-shadow-host';
+            document.body.appendChild(host);
+            this.shadowRoot = host.attachShadow({ mode: 'open' });
+          } else {
+            setTimeout(checkBody, 10);
+          }
+        };
+        checkBody();
+        return;
+      }
+
+      host = document.createElement('div');
+      host.id = 'fc-dock-shadow-host';
+      document.body.appendChild(host);
+    }
+
+    // Attach shadow root if it doesn't exist
+    if (!host.shadowRoot) {
+      this.shadowRoot = host.attachShadow({ mode: 'open' });
+    } else {
+      this.shadowRoot = host.shadowRoot;
+    }
   }
 
   createButton() {
     if (this.button) return;
 
     this.ensureShadowRoot();
+
+    // If shadow root isn't ready yet, wait for it
+    if (!this.shadowRoot) {
+      setTimeout(() => this.createButton(), 10);
+      return;
+    }
 
     this.button = document.createElement('button');
     this.button.id = 'fc-dock-button';
@@ -3100,7 +3202,7 @@ class DockManager {
       this.saveState();
     });
 
-    this.console = new ConsoleDock(this.position, this.shadowRoot, badge);
+    this.console = new ConsoleDock(this.position, this.shadowRoot, badge, this.logger);
   }
 
   handleButtonClick() {
