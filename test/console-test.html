@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -181,6 +182,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>🧪 Float Console - Comprehensive Test Page</h1>
@@ -236,11 +238,13 @@
 
     <div class="section">
       <h2>📁 Groups</h2>
-      <p>Test console.group() and console.groupCollapsed() functionality</p>
+      <p>Test console.group() and console.groupCollapsed() functionality. Deep nesting (6+ levels) shows depth
+        indicators.</p>
       <div class="button-group">
         <button class="btn-group" onclick="testConsoleGroup()">console.group()</button>
         <button class="btn-group" onclick="testConsoleGroupCollapsed()">console.groupCollapsed()</button>
         <button class="btn-group" onclick="testNestedGroups()">Nested Groups</button>
+        <button class="btn-group" onclick="testDeepNestedGroups()">Deep Nested (8 Levels)</button>
         <button class="btn-group" onclick="testMultipleGroups()">Multiple Groups</button>
         <button class="btn-group" onclick="testGroupWithMixedLogs()">Group with Mixed Logs</button>
       </div>
@@ -333,7 +337,9 @@
     </div>
 
     <div class="warning-box">
-      <strong>⚠️ Note:</strong> Some errors (like thrown errors and unhandled promise rejections) will appear in both the browser console and the Float Console. Use the Types dropdown to filter specific log types and the Filter input to search logs.
+      <strong>⚠️ Note:</strong> Some errors (like thrown errors and unhandled promise rejections) will appear in both
+      the browser console and the Float Console. Use the Types dropdown to filter specific log types and the Filter
+      input to search logs.
     </div>
   </div>
 
@@ -541,6 +547,33 @@
       console.groupEnd();
     }
 
+    function testDeepNestedGroups() {
+      console.group('Level 1');
+      console.log('Log at level 1');
+      console.group('Level 2');
+      console.log('Log at level 2');
+      console.group('Level 3');
+      console.log('Log at level 3');
+      console.group('Level 4');
+      console.log('Log at level 4');
+      console.group('Level 5');
+      console.log('Log at level 5 (last without indicator)');
+      console.group('Level 6');
+      console.log('Log at level 6 (should show [+1] indicator)');
+      console.group('Level 7');
+      console.log('Log at level 7 (should show [+2] indicator)');
+      console.group('Level 8');
+      console.log('Log at level 8 (should show [+3] indicator)');
+      console.groupEnd();
+      console.groupEnd();
+      console.groupEnd();
+      console.groupEnd();
+      console.groupEnd();
+      console.groupEnd();
+      console.groupEnd();
+      console.groupEnd();
+    }
+
     function testConsoleObject() {
       const user = {
         id: 1,
@@ -581,7 +614,7 @@
     function testConsoleArray() {
       const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       console.log('Number array:', numbers);
-      
+
       const mixed = ['string', 123, true, null, undefined, { obj: 'value' }];
       console.log('Mixed array:', mixed);
 
@@ -834,4 +867,5 @@
     console.info('Use pin icons to pin important logs.');
   </script>
 </body>
+
 </html>
