@@ -554,9 +554,15 @@ class Renderer {
       if (!a.pinned && b.pinned) return 1;
       return a.timestamp - b.timestamp;
     });
+
+    const MAX_VISUAL_DEPTH = 5;
+    const getDepthIndicator = (depth) => depth > MAX_VISUAL_DEPTH ? `<span class="fc-depth-indicator">[+${depth - MAX_VISUAL_DEPTH}]</span> ` : '';
+
     panel.innerHTML = sortedLogs
       .map((log, index) => {
-        const indent = (log.groupDepth || 0) * 20;
+        const actualDepth = log.groupDepth || 0;
+        const visualDepth = Math.min(actualDepth, MAX_VISUAL_DEPTH);
+        const indent = visualDepth * 12;
         const isGroupStart = log.isGroupStart || false;
         const collapsed = log.collapsed || false;
         const logId = log.id || `log-${index}`;
@@ -567,20 +573,23 @@ class Renderer {
           const groupLabel = log.message.groupLabel;
           const groupLogs = log.message.groupLogs || [];
 
-          const renderGroupLog = (groupLog, depth = 0) => {
+          const renderGroupLog = (groupLog, baseDepth = 1) => {
+            const actualDepth = groupLog.groupDepth !== undefined ? groupLog.groupDepth : baseDepth;
+            const visualDepth = Math.min(actualDepth, MAX_VISUAL_DEPTH);
+            const depthIndicator = getDepthIndicator(actualDepth);
             if (groupLog.isGroupStart && groupLog.message?.groupLabel !== undefined) {
               const nestedGroupLabel = groupLog.message.groupLabel;
               const nestedGroupLogs = groupLog.message.groupLogs || [];
               const nestedCollapsed = groupLog.collapsed || false;
               const nestedGroupContent = nestedGroupLogs
-                .map((nestedLog) => renderGroupLog(nestedLog, depth + 1))
+                .map((nestedLog) => renderGroupLog(nestedLog, actualDepth + 1))
                 .join('');
 
               return `
-                <div class="fc-nested-group" style="padding-left: ${depth * 20}px; margin-top: 4px;">
+                <div class="fc-nested-group" style="padding-left: ${visualDepth * 12}px; margin-top: 4px;">
                   <div class="fc-group-content-clickable" style="cursor: pointer;">
                     <span class="fc-group-toggle" style="display: inline-block; margin-right: 6px;">${nestedCollapsed ? this.getChevronUpIcon() : this.getChevronDownIcon()}</span>
-                    <span style="display: inline;">${this.formatMessageWithStyles(nestedGroupLabel)}</span>
+                    ${depthIndicator}<span style="display: inline;">${this.formatMessageWithStyles(nestedGroupLabel)}</span>
                     <div class="fc-group-content" style="display: ${nestedCollapsed ? 'none' : 'block'}; margin-top: 6px; margin-left: 18px;">
                       ${nestedGroupContent}
                     </div>
@@ -590,13 +599,13 @@ class Renderer {
             } else {
               const logType = groupLog.type || 'log';
               const logMessage = this.formatMessageWithStyles(groupLog.message);
-              return `<div class="fc-log-${logType}" style="padding-left: ${depth * 20}px; margin-top: 4px;">
-                <span class="fc-log-message">${logMessage}</span>
+              return `<div class="fc-log-${logType}" style="padding-left: ${visualDepth * 12}px; margin-top: 4px;">
+                ${depthIndicator}<span class="fc-log-message">${logMessage}</span>
               </div>`;
             }
           };
 
-          const groupContent = groupLogs.map((groupLog) => renderGroupLog(groupLog, 0)).join('');
+          const groupContent = groupLogs.map((groupLog) => renderGroupLog(groupLog, 1)).join('');
 
           return `
         <div class="fc-log fc-log-group ${log.pinned ? 'fc-log-pinned' : ''}" 
@@ -2539,6 +2548,23 @@ class ConsoleDock {
       .fc-log-message.fc-group-message {
         max-height: none;
         overflow: visible;
+      }
+
+      .fc-depth-indicator {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 600;
+        color: #666;
+        background: rgba(0, 0, 0, 0.08);
+        padding: 1px 4px;
+        border-radius: 3px;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+
+      .fc-console.dark-mode .fc-depth-indicator {
+        color: #999;
+        background: rgba(255, 255, 255, 0.12);
       }
 
       .fc-table-pre {
