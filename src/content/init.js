@@ -78,6 +78,14 @@ class Logger {
     const MAX_LOGS = 10000;
     if (this.logs.length >= MAX_LOGS) {
       const removeCount = Math.floor(MAX_LOGS * 0.1);
+      for (let i = 0; i < removeCount; i++) {
+        const log = this.logs[i];
+        if (log) {
+          log.message = null;
+          log.timestamp = null;
+          log.sourceFile = null;
+        }
+      }
       this.logs.splice(0, removeCount);
     }
 
@@ -117,18 +125,37 @@ class Logger {
   }
 
   clear() {
-    this.logs = [];
+    for (let i = 0; i < this.logs.length; i++) {
+      const log = this.logs[i];
+      if (log) {
+        log.message = null;
+        log.timestamp = null;
+        log.sourceFile = null;
+      }
+    }
+    this.logs.length = 0;
   }
 
   deleteLog(id) {
+    let logToRemove = null;
     this.logs = this.logs.filter((log) => {
-      if (log.id === id) return false;
-      if (String(log.id) === String(id)) return false;
+      if (log.id === id || String(log.id) === String(id)) {
+        logToRemove = log;
+        return false;
+      }
       const logIdNum = typeof log.id === 'number' ? log.id : parseFloat(log.id);
       const idNum = typeof id === 'number' ? id : parseFloat(id);
-      if (!isNaN(logIdNum) && !isNaN(idNum) && logIdNum === idNum) return false;
+      if (!isNaN(logIdNum) && !isNaN(idNum) && logIdNum === idNum) {
+        logToRemove = log;
+        return false;
+      }
       return true;
     });
+    if (logToRemove) {
+      logToRemove.message = null;
+      logToRemove.timestamp = null;
+      logToRemove.sourceFile = null;
+    }
   }
 
   togglePin(id) {
